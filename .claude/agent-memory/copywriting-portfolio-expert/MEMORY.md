@@ -60,3 +60,8 @@
 
 ## LinkedIn Assets Created
 - See `linkedin-copy.md` for all LinkedIn profile and post copy (created 2026-03-01)
+- Names used in LinkedIn posts: Marcus (Section 3 — case study post), Danny (Section 4 — early draft, not deployed), Tony (Section 5 — flagship pinned case study, final version)
+- CTA keywords in use: AUDIT (Section 3 post), GROWTH (Section 5 flagship post)
+- Section 1e (Audit post) trimmed to 2,920 chars on 2026-03-01 — LinkedIn-ready
+- Section 5 (Tony case study) trimmed to 2,941 chars on 2026-03-01 — LinkedIn-ready
+- LinkedIn regular post limit is 3,000 characters (including spaces, line breaks, hashtags)
