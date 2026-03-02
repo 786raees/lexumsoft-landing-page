@@ -32,7 +32,7 @@ export const siteMetadata: Metadata = {
     siteName: COMPANY.name,
     locale: "en_US",
     type: "website",
-    images: [{ url: "/logo.png", width: 800, height: 800, alt: COMPANY.name }],
+    images: [{ url: "/logo.png", width: 393, height: 373, alt: COMPANY.name }],
   },
   twitter: {
     card: "summary_large_image",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import { siteMetadata } from "@/lib/metadata";
 import { generateOrganizationSchema, generateLocalBusinessSchema } from "@/lib/schema";
+import { ElevenLabsWidget } from "@/components/layout/ElevenLabsWidget";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <head>
         <meta name="theme-color" content="#FAF8F4" />
+        <link rel="dns-prefetch" href="//unpkg.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -47,8 +49,7 @@ export default function RootLayout({
         className={`${plusJakarta.variable} ${dmSans.variable} antialiased`}
       >
         {children}
-        <elevenlabs-convai agent-id="agent_8201kjkb2rv3etbsbe3sznw8ys1k"></elevenlabs-convai>
-        <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+        <ElevenLabsWidget />
       </body>
     </html>
   );

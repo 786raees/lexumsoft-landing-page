@@ -42,9 +42,9 @@ export function Footer() {
               <Image
                 src="/logo-white.png"
                 alt="LexumSoft"
-                width={32}
-                height={32}
-                className="size-8"
+                width={371}
+                height={341}
+                className="w-8 h-auto"
               />
               <span className="font-heading text-lg font-bold text-white">LexumSoft</span>
             </div>

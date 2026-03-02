@@ -71,9 +71,9 @@ export function Navbar({ light = false }: { light?: boolean }) {
                 <Image
                   src={(scrolled || light) ? "/logo.png" : "/logo-white.png"}
                   alt="LexumSoft"
-                  width={36}
-                  height={36}
-                  className="size-9 transition-all duration-300"
+                  width={393}
+                  height={373}
+                  className="w-9 h-auto transition-all duration-300"
                 />
               </div>
               <span
@@ -182,9 +182,9 @@ export function Navbar({ light = false }: { light?: boolean }) {
                     <Image
                       src="/logo-white.png"
                       alt="LexumSoft"
-                      width={32}
-                      height={32}
-                      className="size-8"
+                      width={371}
+                      height={341}
+                      className="w-8 h-auto"
                     />
                     <span className="font-heading text-lg font-bold text-white">LexumSoft</span>
                   </div>
