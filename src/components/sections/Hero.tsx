@@ -90,8 +90,8 @@ export function Hero() {
         />
       </div>
 
-      <Container className="relative z-10 py-16 sm:py-20 lg:py-28">
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_420px] lg:gap-16 xl:grid-cols-[1fr_480px]">
+      <Container className="relative z-10 py-10 sm:py-14 lg:py-20">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_420px] lg:gap-16 xl:grid-cols-[1fr_480px]" style={{ marginTop: "-30px" }}>
           {/* Left column — Content (CSS animations for fast LCP) */}
           <div>
             <div style={{ animation: "hero-fade-up 0.6s ease-out both" }}>
@@ -109,7 +109,7 @@ export function Hero() {
               <br />
               <CSSWordReveal text="Book More Jobs." baseDelay={0.45} />
               <br />
-              <span className="inline-block bg-gradient-to-r from-amber via-orange-400 to-amber bg-clip-text text-transparent">
+              <span className="text-amber">
                 <CSSWordReveal text="Dominate Your Market." baseDelay={0.75} />
               </span>
             </h1>

@@ -764,3 +764,261 @@ We do free audits for plumbing and HVAC company owners: your website, your Googl
 - Send 20–25 connection requests per day to plumbing/HVAC owners
 - Follow up connected prospects with a non-salesy value message 5–7 days after connecting
 - Comment on posts from plumbing/HVAC industry accounts to increase profile visibility
+
+---
+
+# 6. DRIPIFY OUTREACH SEQUENCE — Post-Connection Drip (3 Messages)
+
+*(Created 2026-03-03. Designed for Dripify automation. Targets plumbing and HVAC company owners in the US. Uses Dripify variables: %%first_name%%, %%company%%, %%city%%, %%position%%.)*
+
+*(Tone: casual, direct, founder-to-owner — NOT corporate or salesy. Reads like a real person, not a template.)*
+
+*(Case study names already in use on public posts: Tony, Danny, Marcus. Do not reuse these names in future drip copy without noting the conflict.)*
+
+*(Free audit is the sole CTA across all three messages. No other offer is introduced.)*
+
+---
+
+## Sequence Overview
+
+| Message | Trigger | Goal |
+|---|---|---|
+| Message 1 | Day 0 — immediately after connection accepted | Warm intro, no pitch, open a conversation |
+| Message 2 | Day 5–7 after Message 1 | Deliver value, soft-introduce the audit |
+| Message 3 | Day 10–14 after Message 1 | Final nudge, create light urgency, clear CTA |
+
+---
+
+## Message 1 — Day 0 (Warm Intro)
+
+*(Sent immediately when connection is accepted. Goal: be human, not salesy. Plant a seed without pitching anything. Invite a reply.)*
+
+*(Character count: ~450)*
+
+```
+Hey %%first_name%% — glad to be connected.
+
+I work exclusively with plumbing and HVAC companies across the US — it's the only thing we do at LexumSoft. So when I see someone running a business like %%company%%, I always like to reach out.
+
+No pitch here. Just curious — how's the lead flow been for you lately in %%city%%? Is the phone ringing consistently or is it still pretty hit-or-miss depending on the season?
+
+I ask because that's usually the first thing owners in the trades tell me when we talk — the leads are either feast or famine and they're not sure how to even it out.
+
+Either way, great to be connected.
+
+— Waqar
+```
+
+**Variable notes:**
+- %%first_name%% — personalises the opener
+- %%company%% — signals you looked at their profile, not a mass blast
+- %%city%% — adds geographic relevance; makes the question feel specific to their market
+
+**Rationale:** The question at the end is the key. "Feast or famine" is language every contractor recognises immediately — it signals that Waqar understands the business without stating it. An open question invites a reply and starts a real conversation, which is the only goal of Message 1. No CTA, no link, no audit mention.
+
+---
+
+## Message 2 — Day 5–7 (Value Drop, Soft Pitch)
+
+*(Sent 5–7 days after Message 1 regardless of whether they replied. If they replied, you may want to pause this and continue the conversation manually. Goal: deliver something useful for free, introduce the audit as a logical next step — not a sales call.)*
+
+*(Character count: ~620)*
+
+```
+%%first_name%% — wanted to share something that might be useful whether we ever work together or not.
+
+We audited 47 plumbing and HVAC websites last month. The same 5 problems showed up almost every time:
+
+1. Phone number buried (invisible on mobile — where 70% of visitors land)
+2. Ads running to the homepage instead of a dedicated landing page
+3. No social proof above the fold (your reviews exist — customers just can't see them)
+4. Site loading in 5+ seconds on mobile (Google penalises this, customers leave)
+5. A service list instead of an actual offer — nothing that gives someone a reason to call YOU over the next guy
+
+Most of these take days to fix, not months. And fixing them moves the needle on calls without spending a dollar more on ads.
+
+If you're curious where %%company%% stands on these, I do free audits for plumbing and HVAC owners — I'll personally look at your website, your Google presence, and your current ad setup and tell you exactly what I'd fix first.
+
+No obligation. Just a straight answer.
+
+Worth it? Happy to get you on the schedule.
+
+— Waqar
+```
+
+**Variable notes:**
+- %%first_name%% — keeps it personal at the top
+- %%company%% — makes the audit offer feel targeted to them specifically, not generic
+
+**Rationale:** This message leads with value that's useful even if they never respond — the 5 mistakes are real, recognisable, and actionable. That generosity builds trust. The audit offer flows naturally from the content: "I told you what to look for — want me to look at yours specifically?" The closing question ("Worth it?") is low-pressure and conversational. It's not "Book a call" — it's "is this useful to you?"
+
+---
+
+## Message 3 — Day 10–14 (Final Nudge, Light Urgency)
+
+*(Sent 10–14 days after Message 1. This is the last automated touch in the sequence. Goal: close the loop, make one clear ask, create light urgency without manufactured pressure. After this, move unresponsive leads to a manual follow-up list or let them sit.)*
+
+*(Character count: ~480)*
+
+```
+%%first_name%% — last message from me on this, I promise.
+
+I do free audits for plumbing and HVAC owners — your website, Google Business Profile, and ad setup. You get a real breakdown of what's costing you leads and what to fix first. No sales pitch attached to it.
+
+I typically run 8–10 of these per month so I can actually go deep on each one instead of rushing through them. A couple of spots usually open up at the start of each month.
+
+If %%company%% is a fit, I'm happy to get you on the schedule before they fill up. If the timing isn't right, no pressure at all — I'll be here.
+
+Just reply "audit" and I'll send you the details.
+
+— Waqar
+```
+
+**Variable notes:**
+- %%first_name%% — keeps the closing personal
+- %%company%% — makes the scarcity feel specific to them, not a copy-paste closer
+
+**Rationale:** "Last message from me on this, I promise" is the most important line in the sequence. It signals respect for their inbox and actually increases response rates — people are more likely to act when they know it's the final ask rather than the start of an endless follow-up chain. The 8–10 audits per month creates genuine scarcity (not fake countdown timers) and makes the offer feel selective. The reply keyword "audit" makes the action frictionless — one word, nothing to fill out.
+
+---
+
+## Dripify Setup Notes
+
+- **Sequence name suggestion**: `LexumSoft — Plumber/HVAC Owner Outreach v1`
+- **Target audience filters in Dripify/LinkedIn**: Title keywords — "Owner", "Founder", "President", "CEO", "General Manager" + Industry — "Construction", "Utilities" + Location — United States
+- **Daily send volume**: Stay at or below 40–50 automated messages per day total (including connection requests) to stay within LinkedIn's safe usage thresholds
+- **If a prospect replies to Message 1**: Pause the sequence for that contact and continue manually — do not let automation send Message 2 over an active conversation
+- **If a prospect replies to Message 2**: Same — pause and respond personally; they are a warm lead
+- **After Message 3**: Move non-responders to a "no-reply" tag in Dripify. Re-engage manually in 60–90 days with a new angle (a case study post, a seasonal offer, etc.)
+- **CTA keyword in Message 3**: "audit" (lowercase, one word) — consistent with the AUDIT keyword used in public posts, making it easy to track inbound across channels
+- **Do not use %%position%% in this sequence** — the variable outputs job titles that can read awkwardly in conversational DMs (e.g., "As a Owner at..."). Stick to %%first_name%%, %%company%%, %%city%%.
+
+---
+
+# 7. TUESDAY POST — After-Hours Calls Angle
+
+*(Created 2026-03-03. Standalone post — NOT pinned. Angle: the money plumbing & HVAC owners lose every night by missing after-hours calls. Centers on the AI receptionist service but leads with pain and math, not a product pitch.)*
+
+*(CTA keyword: CALLS — distinct from AUDIT (Section 1e, Section 3) and GROWTH (Section 5). Lets Waqar distinguish inbound lead sources.)*
+
+*(Names already in use on public posts: Tony, Danny, Marcus. Do not use any of these names in this post or future posts without noting the conflict.)*
+
+*(Character count: ~2,780 — within LinkedIn's 3,000-character limit.)*
+
+*(Post format: text-only. No external link in the body — place lexumsoft.com link in the first comment only.)*
+
+---
+
+```
+Your competitor just booked a job at 9 PM.
+
+You missed the call.
+
+That call was worth $800. Maybe $2,400 if it's a water heater replacement. And that customer isn't calling back in the morning.
+
+---
+
+Here's what happens when a homeowner has a plumbing or HVAC emergency after 6 PM:
+
+They search Google.
+
+They call the first number they find.
+
+If no one answers, they call the second number.
+
+That's it. No voicemail. No callback. No second chance.
+
+We looked at the call data across our client accounts. On average, plumbing and HVAC companies miss 38% of their inbound calls after 6 PM.
+
+38%.
+
+On a slow week that might be 4 calls. On a busy week — end of summer, first cold snap of the year — it's 12 to 15.
+
+Do the math on your average job ticket and sit with that number for a second.
+
+---
+
+The problem isn't that you're ignoring the phone.
+
+You're just not available. You're finishing a job. Eating dinner. Putting the kids to bed. Being a human being.
+
+But the phone doesn't care about any of that. And neither does the customer on the other end who's watching water come through their ceiling.
+
+---
+
+We set up an AI receptionist for a client in Texas last year.
+
+He'd been losing roughly 40% of his after-hours calls. Not because he didn't care — because there's literally no way to answer every call at 10 PM on a Wednesday.
+
+The AI answered every call. Sounded professional. Asked the right questions. Collected the job details. Booked the appointment directly into his calendar.
+
+He woke up to confirmed jobs he would have lost completely.
+
+First month: 14 after-hours bookings he would have missed.
+
+His average ticket: $620.
+
+That's $8,680 in one month from calls that used to go nowhere.
+
+He's been running it ever since.
+
+---
+
+There's a version of this story for almost every plumbing and HVAC company we talk to.
+
+The leads are already coming in. You're already paying for the website, the Google Ads, the Local SEO — all of it driving traffic.
+
+But a third of the people who call after 6 PM hit a wall.
+
+And they go find someone who answers.
+
+---
+
+If you want to know exactly how many calls you're missing and what they're costing you, comment CALLS below.
+
+I'll send you a breakdown of what an after-hours setup looks like for a business your size — what it captures, what it costs, and what the ROI math looks like in your market.
+
+No pitch. Just the numbers.
+
+Comment CALLS.
+
+#PlumbingBusiness #HVACBusiness #ContractorMarketing #PlumbingMarketing #HVACMarketing #HomeServiceBusiness #AIReceptionist #LeadGeneration #LocalSEO #ContractorGrowth
+```
+
+---
+
+**FIRST COMMENT** (post this within 60 seconds of publishing — this is where the link lives):
+
+```
+Want to see how much revenue is walking out the door after 6 PM?
+
+We set up after-hours and 24/7 AI receptionist systems for plumbing and HVAC companies across the US. Plans start at $997/month — and the after-hours system alone typically pays for itself in the first 2 weeks.
+
+→ lexumsoft.com
+
+200+ contractors served. 90-Day ROI Guarantee. No long-term contracts.
+```
+
+---
+
+**IDEOGRAM IMAGE PROMPTS** (1200x1200 square, Style: Design, Magic Prompt: OFF):
+
+**Option A — The missed call visual:**
+```
+Dark charcoal background (#1A1714). Center: a smartphone screen showing 3 missed call notifications stacked vertically, each with a red badge. Below the phone, bold white sans-serif text reads: "38% of after-hours calls go unanswered." Bottom strip in amber-gold (#C2710C) with white text: "LexumSoft — Never Miss a Call." Clean, minimal layout. No gradients. High contrast.
+```
+
+**Option B — The revenue math visual:**
+```
+Dark charcoal background (#1A1714). Bold white headline at top: "Missed after 6 PM." Below: a simple 3-row stat card with amber-gold (#C2710C) left border. Row 1: "4–15 missed calls/week" in white. Row 2: "$620 avg. ticket" in white. Row 3: "$8,680+ lost per month" in amber-gold, larger font weight. Bottom: LexumSoft wordmark in white. No photography. No icons. Typography-only design, high contrast, contractor-market feel.
+```
+
+---
+
+**Post deployment notes:**
+- Best posting window for this post: Tuesday, 7–9 AM EST or 12–1 PM EST. Contractors check LinkedIn in the morning before jobs start and at midday. The after-hours pain point lands harder when they're already thinking about their day.
+- This post does NOT need to be pinned — it's designed as a regular feed post, not a Featured section anchor. Let the Tony/GROWTH post hold the Featured pin.
+- CTA keyword is CALLS — distinct from AUDIT and GROWTH. When someone comments CALLS, DM them within 2 hours with a brief breakdown of the AI receptionist service and a link to book a call or audit. Do not send a generic brochure.
+- Engage with every comment in the first 60 minutes. If someone shares their own "missed call" story in the comments — and they will — respond personally. That thread engagement signals the algorithm to push the post further.
+- The math in this post ($8,680/month) is based on the client example stated. Do not exaggerate or round up. Specificity is the entire credibility of this post.
+- Do NOT edit the post body after publishing.
