@@ -1,8 +1,8 @@
-# Wednesday Post — Google Business Profile Angle
+# Wednesday Post --Google Business Profile Angle
 
 **CTA keyword:** PROFILE
 **Best time to post:** Wednesday, 7-9 AM or 12-1 PM EST
-**Do NOT pin this post** — it's a regular feed post, not a Featured pin.
+**Do NOT pin this post** --it's a regular feed post, not a Featured pin.
 
 ---
 
@@ -11,13 +11,13 @@
 ```
 You're paying for Google Ads.
 
-But your free Google listing is sitting there half-empty, with stock photos and no reviews — quietly killing your credibility before the ad even runs.
+But your free Google listing is sitting there half-empty, with stock photos and no reviews --quietly killing your credibility before the ad even runs.
 
 ---
 
 Here's the thing most plumbing and HVAC owners don't know:
 
-The Map Pack — that top section of Google with the 3 local businesses and a map — gets over 50% of all clicks on local service searches.
+The Map Pack --that top section of Google with the 3 local businesses and a map --gets over 50% of all clicks on local service searches.
 
 Not the ads above it. Not the organic results below it. The Map Pack.
 
@@ -40,21 +40,21 @@ Every one of those gaps is a signal to Google that you're less active, less rele
 
 ---
 
-Here's what you can fix today — no agency required:
+Here's what you can fix today --no agency required:
 
 1. Add real job site photos. Not stock. Not your logo. Actual work. Google's own data shows businesses with 100+ photos get 520% more calls than businesses with under 10. Go take some photos on your next job.
 
 2. Fill in every service category that applies. Water heater installation. Drain cleaning. Emergency plumbing. HVAC maintenance. Furnace repair. Each one is a search term you can show up for.
 
-3. Respond to every review — especially the bad ones. A business that responds professionally to a 2-star review tells the next customer more than 10 five-star ratings.
+3. Respond to every review --especially the bad ones. A business that responds professionally to a 2-star review tells the next customer more than 10 five-star ratings.
 
 4. Post to your GBP once a week. A seasonal tip. A completed job. A current promo. 150 words, one photo. It takes 10 minutes and it signals to Google that you're active.
 
-5. Answer your own Q&A section. Type in questions customers ask you all the time — then answer them yourself before your competitor does.
+5. Answer your own Q&A section. Type in questions customers ask you all the time --then answer them yourself before your competitor does.
 
 ---
 
-One of our clients — a plumbing company in Arizona — came to us with a fully functioning Google Ads campaign and almost no Map Pack presence. Good website. Solid reviews. But the GBP was a ghost.
+One of our clients --a plumbing company in Arizona --came to us with a fully functioning Google Ads campaign and almost no Map Pack presence. Good website. Solid reviews. But the GBP was a ghost.
 
 We spent 3 weeks doing nothing but GBP optimization. No new ads. No new pages.
 
@@ -68,7 +68,7 @@ He was already paying for ads to compete for the same customers he was now getti
 
 Your Google Business Profile is the most underleveraged tool in local contractor marketing.
 
-If you want me to pull up your current GBP and tell you exactly what's holding you back — comment PROFILE below.
+If you want me to pull up your current GBP and tell you exactly what's holding you back --comment PROFILE below.
 
 I'll send you a quick breakdown of what we see, what's fixable, and what it would take to get you into the Map Pack in your market.
 
@@ -82,7 +82,7 @@ Comment PROFILE.
 ## First Comment (post within 60 seconds)
 
 ```
-We optimize Google Business Profiles as part of every client engagement at LexumSoft — alongside Local SEO, Google Ads, and website builds designed specifically for plumbing and HVAC companies.
+We optimize Google Business Profiles as part of every client engagement at LexumSoft --alongside Local SEO, Google Ads, and website builds designed specifically for plumbing and HVAC companies.
 
 If your GBP isn't pulling in free leads every week, it's a fixable problem.
 
@@ -95,9 +95,9 @@ If your GBP isn't pulling in free leads every week, it's a fixable problem.
 
 ## Post Image Prompts
 
-Full comprehensive prompts with all specs are in: **`linkedin/images/wednesday-post-gbp-image-prompts.md`**
+Full comprehensive prompts with all specs are in: **`image-prompts.md`** (same directory)
 
-### Quick Reference — 4 Concepts
+### Quick Reference --4 Concepts
 
 | # | Concept | Platform | Difficulty | Description |
 |---|---------|----------|------------|-------------|
@@ -113,9 +113,9 @@ Full comprehensive prompts with all specs are in: **`linkedin/images/wednesday-p
 
 ## Deployment Notes
 
-- **When someone comments PROFILE:** DM within 2 hours. Open with: "Hey [Name] — pulled up your GBP. Here's what I'm seeing..." then give 2-3 specific observations about their actual listing (check categories, photo count, last post date, review response rate). Make it feel like a personalized audit, not a templated pitch.
+- **When someone comments PROFILE:** DM within 2 hours. Open with: "Hey [Name] --pulled up your GBP. Here's what I'm seeing..." then give 2-3 specific observations about their actual listing (check categories, photo count, last post date, review response rate). Make it feel like a personalized audit, not a templated pitch.
 - **Do not edit the post body after publishing.** LinkedIn suppresses edited posts in the first 24 hours.
-- **Engage with every comment in the first 60 minutes.** If contractors share GBP wins or frustrations in the replies, respond with a specific follow-up question — thread activity is the reach multiplier on educational posts.
+- **Engage with every comment in the first 60 minutes.** If contractors share GBP wins or frustrations in the replies, respond with a specific follow-up question --thread activity is the reach multiplier on educational posts.
 - **The 520% photo stat and 73% call increase figures must stay as written.** Specificity is what separates this post from generic marketing advice.
-- **Educational posts tend to get saved/shared more than fear-based posts.** Track saves as a secondary metric — high save rate signals strong content to the LinkedIn algorithm.
-- **Arizona client anecdote is a new name/market, distinct from:** Texas (after-hours post), Tony (GROWTH pin), Marcus/Johnson Plumbing (AUDIT pin). Keep it unnamed to maintain flexibility — do not assign a name unless Waqar confirms a real client to reference.
+- **Educational posts tend to get saved/shared more than fear-based posts.** Track saves as a secondary metric --high save rate signals strong content to the LinkedIn algorithm.
+- **Arizona client anecdote is a new name/market, distinct from:** Texas (after-hours post), Tony (GROWTH pin), Marcus/Johnson Plumbing (AUDIT pin). Keep it unnamed to maintain flexibility --do not assign a name unless Waqar confirms a real client to reference.
