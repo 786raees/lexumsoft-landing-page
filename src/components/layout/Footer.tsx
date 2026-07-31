@@ -140,6 +140,7 @@ export function Footer() {
                 { label: "Privacy Policy", href: "/privacy-policy" },
                 { label: "Terms of Service", href: "/terms-of-service" },
                 { label: "Cookie Policy", href: "/cookie-policy" },
+                { label: "Refund Policy", href: "/refund-policy" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-white/40 transition-colors hover:text-amber">

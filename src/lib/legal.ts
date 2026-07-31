@@ -138,6 +138,63 @@ export const TERMS_OF_SERVICE: LegalPage = {
   ],
 };
 
+export const REFUND_POLICY: LegalPage = {
+  title: "Refund Policy",
+  lastUpdated: "August 1, 2026",
+  sections: [
+    {
+      heading: "Overview",
+      content:
+        "This Refund Policy explains when and how LexumSoft issues refunds for its services, including Website Design & Development, Complete Online Presence Management, Ad Campaign Management, and AI Receptionist services.\n\nWe want every client relationship to start and end fairly. This policy is designed to be straightforward: you should never pay for work that has not been performed, and we should be fairly compensated for work that has.\n\nThis policy applies to all payments made to LexumSoft, whether by card, bank transfer, or any other payment method. Where a signed service agreement contains different refund terms, the service agreement governs.",
+    },
+    {
+      heading: "Refunds Before Work Begins",
+      content:
+        "If you cancel an engagement before we have started work on your project, you are entitled to a full refund of any amounts paid, minus any non-recoverable third-party costs we have already incurred on your behalf (such as domain registrations, software licenses, or ad platform deposits).\n\nTo cancel, simply email us at waqar@lexumsoft.com. Cancellation is effective on the date we receive your written notice.",
+    },
+    {
+      heading: "Refunds After Work Has Begun",
+      content:
+        "Once work on your project has started, refunds are calculated on a pro-rata basis: you pay for the portion of work that has been completed or is in progress, and we refund the portion that has not yet been performed.\n\nFor one-time projects (such as website design), the completed portion is assessed against the project milestones outlined in your proposal or service agreement.\n\nFor monthly services (such as online presence management, ad campaign management, or AI receptionist services), the current billing month is non-refundable once service delivery for that month has begun. You may cancel at any time to stop future billing — there are no long-term contracts and no cancellation fees. Cancellation takes effect at the end of the current billing period.",
+    },
+    {
+      heading: "Non-Refundable Items",
+      content:
+        "The following are not eligible for refunds under any circumstances:\n\nWork that has been completed and delivered, including approved milestones and deliverables.\n\nThird-party costs incurred on your behalf, including advertising spend paid to platforms such as Google or Meta, domain registrations, hosting fees, stock assets, and software or tool subscriptions purchased for your project.\n\nTime spent on consultations, strategy sessions, research, and revisions that have already been provided.\n\nCharges older than 90 days, except where required by law.",
+    },
+    {
+      heading: "Our 90-Day ROI Guarantee",
+      content:
+        "We stand behind our work with a 90-Day ROI Guarantee: if you do not see a positive return on your investment within 90 days of your campaign going live, we will continue working for you at no additional service charge until we deliver a positive return.\n\nTo be clear, this guarantee is a service guarantee, not a money-back guarantee. It entitles you to continued service free of our management fees; it does not entitle you to a refund of fees for services already performed, and it does not cover third-party costs such as ad spend, which are always paid directly to the advertising platforms.\n\nThe guarantee applies when campaigns have run as recommended for the full 90-day period and requested client inputs (such as approvals, access, and content) have been provided in a timely manner.",
+    },
+    {
+      heading: "How to Request a Refund",
+      content:
+        "To request a refund, email us at waqar@lexumsoft.com with your name, company name, the service in question, and the reason for your request.\n\nWe will acknowledge your request within 2 business days and make a decision within 10 business days. If a refund is approved, it will be issued to your original payment method within 5–10 business days of approval. Depending on your bank or card issuer, it may take additional time for the funds to appear on your statement.",
+    },
+    {
+      heading: "Billing Errors and Duplicate Charges",
+      content:
+        "If you believe you have been charged in error, charged twice, or charged an incorrect amount, contact us immediately at waqar@lexumsoft.com. Verified billing errors and duplicate charges are always refunded in full, promptly and without conditions.",
+    },
+    {
+      heading: "Chargebacks",
+      content:
+        "If you have a concern about any charge, please contact us first before initiating a chargeback with your bank or card issuer. We resolve almost all billing concerns directly, and we can usually do so faster than the dispute process.\n\nInitiating a chargeback on a charge that complies with this policy may result in suspension of active services while the dispute is investigated.",
+    },
+    {
+      heading: "Changes to This Policy",
+      content:
+        'We may update this Refund Policy from time to time. When we do, we will revise the "Last Updated" date at the top of this page. Changes apply to purchases made after the date of the change; the policy in effect at the time of your purchase governs that purchase.',
+    },
+    {
+      heading: "Contact Us",
+      content:
+        "If you have any questions about this Refund Policy, please reach out.\n\nEmail: waqar@lexumsoft.com\nPhone: +923282828885\nWebsite: www.lexumsoft.com\n\nWe aim to respond to all billing inquiries within 2 business days.",
+    },
+  ],
+};
+
 export const COOKIE_POLICY: LegalPage = {
   title: "Cookie Policy",
   lastUpdated: "February 28, 2026",
