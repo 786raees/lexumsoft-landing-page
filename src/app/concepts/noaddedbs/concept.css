@@ -179,11 +179,11 @@
 /* TikTok frame with poster fallback */
 .nab-tt { position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background: #000 center / cover no-repeat; }
 .nab-tt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.nab-poster { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background-size: cover; background-position: center; color: #fff; text-decoration: none; font-weight: 700; }
+.nab-poster { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background-size: cover; background-position: center; color: #fff; text-decoration: none; font-weight: 700; border: 0; padding: 0; cursor: pointer; width: 100%; }
+.nab-tt-out { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 2; font-size: 12px; font-weight: 600; color: #fff; text-decoration: none; padding: 5px 10px; border-radius: 999px; background: rgba(15,42,51,0.6); white-space: nowrap; }
 .nab-poster::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,42,51,0.1), rgba(15,42,51,0.55)); }
 .nab-poster .play { position: relative; width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.92); }
 .nab-poster .play::after { content: ""; position: absolute; left: 26px; top: 20px; width: 18px; height: 24px; background: var(--ink); clip-path: polygon(0 0, 100% 50%, 0 100%); }
-.nab-poster .hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-size: 13px; padding: 6px 12px; border-radius: 999px; background: rgba(15,42,51,0.7); white-space: nowrap; }
 .nab-poster[hidden] { display: none; }
 .nab-phone .nab-tt { border-radius: 26px; }
 

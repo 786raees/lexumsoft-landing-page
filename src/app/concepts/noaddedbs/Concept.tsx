@@ -81,26 +81,35 @@ function player(id: string, autoplay = false) {
 
 function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; title: string; autoplay?: boolean; poster: string }) {
   const [loaded, setLoaded] = useState(false);
+  const frame = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
-    const onMsg = (e: MessageEvent) => { if (e.origin === "https://www.tiktok.com") setLoaded(true); };
+    // TikTok's player posts messages once it is ready; any message from it means the poster can go
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { "x-tiktok-player"?: boolean } | undefined;
+      if (e.origin === "https://www.tiktok.com" || (d && typeof d === "object" && d["x-tiktok-player"])) setLoaded(true);
+    };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, []);
+  const play = () => {
+    setLoaded(true);
+    frame.current?.contentWindow?.postMessage({ type: "play", "x-tiktok-player": true }, "https://www.tiktok.com");
+  };
   return (
     <div className="nab-tt" style={{ backgroundImage: `url(${poster})` }}>
-      <a
+      <button
+        type="button"
         className="nab-poster"
-        href={`${TIKTOK}/video/${id}`}
-        target="_blank"
-        rel="noopener"
         hidden={loaded}
         style={{ backgroundImage: `url(${poster})` }}
-        aria-label={`${title}. Opens on TikTok`}
+        onClick={play}
+        aria-label={`Play ${title}`}
       >
         <span className="play" aria-hidden="true" />
-        <span className="hint">Play on TikTok</span>
-      </a>
+      </button>
+      <a className="nab-tt-out" href={`${TIKTOK}/video/${id}`} target="_blank" rel="noopener">Open on TikTok</a>
       <iframe
+        ref={frame}
         src={player(id, autoplay)}
         title={title}
         allow={autoplay ? "autoplay; encrypted-media" : "encrypted-media"}
