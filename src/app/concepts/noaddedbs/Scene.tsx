@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Float, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
@@ -12,113 +12,142 @@ import * as THREE from "three";
 
 const TEAL = "#1e9fb5";
 const INK = "#0f2a33";
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
-function makeLabel(): THREE.CanvasTexture {
-  const c = document.createElement("canvas");
-  c.width = 2048;
-  c.height = 1320;
-  const g = c.getContext("2d")!;
-  g.fillStyle = "#ffffff";
-  g.fillRect(0, 0, c.width, c.height);
-  // teal band across the lower third, wraps the whole bottle
-  g.fillStyle = TEAL;
-  g.fillRect(0, 900, c.width, 320);
-  g.fillStyle = "#166f80";
-  g.fillRect(0, 1220, c.width, 100);
-  // front panel text, centred at u=0.5
-  const cx = c.width * 0.5;
-  g.textAlign = "center";
-  g.fillStyle = INK;
-  // logo ring
-  g.beginPath();
-  g.arc(cx, 330, 70, 0, Math.PI * 2);
-  g.lineWidth = 7;
-  g.strokeStyle = TEAL;
-  g.stroke();
-  g.font = "700 30px sans-serif";
-  g.fillText("NO ADDED", cx, 316);
-  g.font = "800 48px sans-serif";
-  g.fillText("BS", cx, 366);
-  g.font = "500 58px sans-serif";
-  g.fillText("NATURE'S", cx, 500);
-  g.fillText("FINEST", cx, 566);
-  g.fillText("SHAMPOO", cx, 632);
-  g.font = "500 26px sans-serif";
-  g.fillStyle = "#3f5a63";
-  g.fillText("For All Hair Types", cx, 700);
-  g.fillText("100% Made by Nature", cx, 736);
-  g.fillStyle = "#ffffff";
-  g.font = "800 40px sans-serif";
-  g.fillText("ORGANIC SHAMPOO", cx, 990);
-  g.font = "500 24px sans-serif";
-  g.fillText("All-Natural Formula for Scalp", cx, 1050);
-  g.fillText("and Hair Wellness", cx, 1082);
-  g.font = "500 24px sans-serif";
-  g.fillText("12 FL OZ / 350 ML", cx, 1180);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  t.wrapS = THREE.RepeatWrapping;
-  // rotate so the front panel faces +z
-  t.offset.x = 0.25;
+const PROFILE: [number, number][] = [[0.562,0.0082],[0.5671,0.0327],[0.5661,0.0572],[0.5671,0.0817],[0.5671,0.1063],[0.5681,0.1308],[0.5651,0.1553],[0.5681,0.1798],[0.5681,0.2044],[0.5671,0.2289],[0.5671,0.2534],[0.5671,0.2779],[0.5671,0.3025],[0.5671,0.327],[0.5671,0.3515],[0.5681,0.376],[0.5661,0.4005],[0.5671,0.4251],[0.5681,0.4496],[0.5681,0.4741],[0.5661,0.4986],[0.5681,0.5232],[0.5661,0.5477],[0.5671,0.5722],[0.5681,0.5967],[0.5671,0.6213],[0.5671,0.6458],[0.5691,0.6703],[0.5681,0.6948],[0.5671,0.7193],[0.5671,0.7439],[0.5681,0.7684],[0.5671,0.7929],[0.5671,0.8174],[0.5681,0.842],[0.5681,0.8665],[0.5671,0.891],[0.5671,0.9155],[0.5671,0.9401],[0.562,0.9646],[0.5681,0.9891],[0.5671,1.0136],[0.5691,1.0381],[0.5681,1.0627],[0.5681,1.0872],[0.5691,1.1117],[0.5681,1.1362],[0.5671,1.1608],[0.5671,1.1853],[0.5681,1.2098],[0.5671,1.2343],[0.5681,1.2589],[0.5691,1.2834],[0.5671,1.3079],[0.5681,1.3324],[0.5691,1.3569],[0.5681,1.3815],[0.5671,1.406],[0.5691,1.4305],[0.5691,1.455],[0.5681,1.4796],[0.5681,1.5041],[0.5681,1.5286],[0.5681,1.5531],[0.5681,1.5777],[0.5681,1.6022],[0.5691,1.6267],[0.5671,1.6512],[0.5691,1.6757],[0.5681,1.7003],[0.5681,1.7248],[0.5691,1.7493],[0.5681,1.7738],[0.5671,1.7984],[0.5691,1.8229],[0.5681,1.8474],[0.5681,1.8719],[0.5691,1.8965],[0.5681,1.921],[0.5681,1.9455],[0.5681,1.97],[0.5681,1.9946],[0.5681,2.0191],[0.5681,2.0436],[0.5671,2.0681],[0.5691,2.0926],[0.5691,2.1172],[0.5681,2.1417],[0.5691,2.1662],[0.5681,2.1907],[0.5681,2.2153],[0.5681,2.2398],[0.5681,2.2643],[0.5681,2.2888],[0.5681,2.3134],[0.5691,2.3379],[0.5681,2.3624],[0.5691,2.3869],[0.5681,2.4114],[0.5691,2.436],[0.5691,2.4605],[0.5691,2.485],[0.5691,2.5095],[0.5681,2.5341],[0.5681,2.5586],[0.5681,2.5831],[0.5691,2.6076],[0.5671,2.6322],[0.5691,2.6567],[0.5702,2.6812],[0.5671,2.7057],[0.5691,2.7302],[0.5691,2.7548],[0.5681,2.7793],[0.5702,2.8038],[0.5691,2.8283],[0.5691,2.8529],[0.5691,2.8774],[0.564,2.9019],[0.5467,2.9264],[0.4772,2.951],[0.3372,2.9755],[0.2718,3.0]];
+
+// The hero object is Logan's actual bottle. The silhouette above was traced from
+// the 2000px store photo (IMG-7941), and the label texture is that same photo
+// unwrapped around the cylinder, so the print, logo and type are the real ones.
+// Body height is 3 units; the pump is measured from the same photo.
+function useLabel(): THREE.Texture | null {
+  const [t, setT] = useState<THREE.Texture | null>(null);
+  const { gl } = useThree();
+  useEffect(() => {
+    let live = true;
+    new THREE.TextureLoader().load("/concepts/noaddedbs/label.jpg", (tex) => {
+      if (!live) return;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = Math.min(16, gl.capabilities.getMaxAnisotropy());
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.offset.x = 0.5; // texture centre (the front panel) sits at +z
+      tex.needsUpdate = true;
+      setT(tex);
+    });
+    return () => { live = false; };
+  }, [gl]);
   return t;
+}
+
+function bodyGeometry(): THREE.LatheGeometry {
+  // smooth the traced radii a little, then close the base and the neck
+  const pts: THREE.Vector2[] = [];
+  const sm = PROFILE.map(([r], i) => {
+    const a = PROFILE[Math.max(0, i - 1)][0], b = PROFILE[Math.min(PROFILE.length - 1, i + 1)][0];
+    return (a + r + b) / 3;
+  });
+  pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] * 0.9, 0.0));
+  PROFILE.forEach(([, y], i) => pts.push(new THREE.Vector2(sm[i], y)));
+  pts.push(new THREE.Vector2(0.27, 3.0), new THREE.Vector2(0.27, 3.02), new THREE.Vector2(0, 3.02));
+  const g = new THREE.LatheGeometry(pts, 128);
+  // linear V along height so the unwrapped photo lands where it was on the bottle
+  const pos = g.attributes.position as THREE.BufferAttribute;
+  const uv = g.attributes.uv as THREE.BufferAttribute;
+  for (let i = 0; i < pos.count; i++) uv.setY(i, Math.min(1, Math.max(0, pos.getY(i) / 3.0)));
+  uv.needsUpdate = true;
+  return g;
+}
+
+const PLASTIC = { color: "#f6f8f8", roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.2 } as const;
+
+// Pump head traced from the same photo: a flat duckbill spout that runs to the left,
+// highest over the left-middle, sloping down to a rounded heel on the right.
+function headGeometry(): THREE.ExtrudeGeometry {
+  const sh = new THREE.Shape();
+  const pts: [number, number][] = [
+    [-0.441, 3.712], [-0.446, 3.745], [-0.43, 3.768], [-0.405, 3.787], [-0.2, 3.8], [-0.03, 3.797],
+    [0.12, 3.776], [0.19, 3.755], [0.213, 3.735], [0.2, 3.708], [0.16, 3.695], [-0.15, 3.695], [-0.2, 3.706],
+  ];
+  sh.moveTo(pts[0][0], pts[0][1]);
+  pts.slice(1).forEach(([x, y]) => sh.lineTo(x, y));
+  sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 6, curveSegments: 12 });
+  g.translate(0, 0, -0.1);
+  return g;
+}
+
+function Pump() {
+  const head = useMemo(() => headGeometry(), []);
+  return (
+    <group>
+      {/* closure collar with fine vertical ribs: flat-shaded facets read as the ribs */}
+      <mesh position={[0, 3.2, 0]}>
+        <cylinderGeometry args={[0.25, 0.266, 0.41, 44, 1]} />
+        <meshPhysicalMaterial {...PLASTIC} flatShading roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 3.0, 0]}>
+        <cylinderGeometry args={[0.272, 0.272, 0.028, 64]} />
+        <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+      {/* lock ring, then the stem */}
+      <mesh position={[0, 3.44, 0]}>
+        <cylinderGeometry args={[0.178, 0.19, 0.08, 48]} />
+        <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+      <mesh position={[0, 3.59, 0]}>
+        <cylinderGeometry args={[0.158, 0.158, 0.22, 48]} />
+        <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+      <mesh geometry={head}>
+        <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+    </group>
+  );
 }
 
 function Bottle({ spin, focus }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number> }) {
   const group = useRef<THREE.Group>(null);
-  const label = useMemo(() => makeLabel(), []);
-  const body = useMemo(() => {
-    // lathe profile: x = radius, y = height. Rounded shoulders, flat base.
-    const pts: THREE.Vector2[] = [];
-    const prof: [number, number][] = [
-      [0, 0], [0.62, 0], [0.7, 0.04], [0.72, 0.2], [0.72, 2.2], [0.68, 2.42], [0.52, 2.6], [0.3, 2.7], [0.26, 2.75], [0.26, 2.9], [0, 2.9],
-    ];
-    prof.forEach(([x, y]) => pts.push(new THREE.Vector2(x, y)));
-    return new THREE.LatheGeometry(pts, 96);
-  }, []);
+  const label = useLabel();
+  const body = useMemo(() => bodyGeometry(), []);
   const targetY = useRef(0);
+  const lastFocus = useRef(0);
+  const pulseAt = useRef(-10);
 
   useFrame((state, dt) => {
     const g = group.current;
     if (!g) return;
-    // scroll drives a full turn; a chip tap pulls the front panel back to face the camera
-    const want = Math.PI * 0.5 + spin.current * Math.PI * 2 + focus.current * 0.0001;
+    // a full turn over the stage; a chip tap yaws the bottle a little per ingredient and pulses it
+    const f = focus.current > 0 ? (focus.current - 5) * 0.22 : 0;
+    // the full turn completes by 85% of the stage, so the front panel is already facing
+    // the reader while the label card is on screen
+    const want = smooth(Math.min(1, spin.current / 0.85)) * Math.PI * 2 + f;
     targetY.current += (want - targetY.current) * Math.min(1, dt * 4);
-    g.rotation.y = targetY.current + Math.sin(state.clock.elapsedTime * 0.4) * 0.06;
+    g.rotation.y = targetY.current + Math.sin(state.clock.elapsedTime * 0.4) * 0.05;
     const wide = state.viewport.width > 7;
+    // the glide finishes in the first 60% of the stage so the card never bisects the bottle
+    const t = smooth(Math.min(1, spin.current / 0.6));
     // desktop: bottle glides from the right of the hero to the left of the label card.
-    // phone: bottle sits above the copy, then drifts off the top as the label card arrives.
-    const x = wide ? 1.9 - spin.current * 4.2 : 0.2;
-    const y = wide ? -1.55 : 0.55 + spin.current * 7;
-    const sc = wide ? 0.92 : 0.6;
+    // phone: bottle parks in the top third while the label card slides under it.
+    const x = wide ? 1.9 - t * 4.2 : 0;
+    const y = wide ? -1.65 : 0.72 + t * 0.12;
+    const pulse = 1 + Math.max(0, 1 - (state.clock.elapsedTime - pulseAt.current) * 3) * 0.04;
+    const sc = (wide ? 0.92 : 0.47 - t * 0.04) * pulse;
     g.position.x += (x - g.position.x) * Math.min(1, dt * 3);
     g.position.y += (y - g.position.y) * Math.min(1, dt * 3);
     g.scale.setScalar(g.scale.x + (sc - g.scale.x) * Math.min(1, dt * 3));
+    if (focus.current !== lastFocus.current) { lastFocus.current = focus.current; pulseAt.current = state.clock.elapsedTime; }
   });
 
   return (
-    <group ref={group} position={[1.9, -1.55, 0]} scale={0.92}>
-      {/* body with label texture */}
-      <mesh geometry={body} castShadow>
-        <meshPhysicalMaterial map={label} roughness={0.32} clearcoat={0.7} clearcoatRoughness={0.25} />
+    <group ref={group} position={[1.9, -1.65, 0]} scale={0.92}>
+      <mesh geometry={body}>
+        {label ? (
+          <meshPhysicalMaterial key="print" map={label} roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} envMapIntensity={1.1} />
+        ) : (
+          <meshPhysicalMaterial key="blank" color="#f6f8f8" roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} />
+        )}
       </mesh>
-      {/* pump */}
-      <mesh position={[0, 3.05, 0]}>
-        <cylinderGeometry args={[0.2, 0.22, 0.3, 48]} />
-        <meshPhysicalMaterial color="#f4f7f8" roughness={0.35} clearcoat={0.8} />
-      </mesh>
-      <mesh position={[0, 3.45, 0]}>
-        <cylinderGeometry args={[0.11, 0.11, 0.55, 32]} />
-        <meshPhysicalMaterial color="#f4f7f8" roughness={0.35} clearcoat={0.8} />
-      </mesh>
-      <mesh position={[0, 3.78, 0]}>
-        <capsuleGeometry args={[0.16, 0.34, 8, 24]} />
-        <meshPhysicalMaterial color="#f4f7f8" roughness={0.35} clearcoat={0.8} />
-      </mesh>
-      <mesh position={[0.32, 3.86, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.11, 0.13, 0.48, 24]} />
-        <meshPhysicalMaterial color="#f4f7f8" roughness={0.35} clearcoat={0.8} />
-      </mesh>
+      <Pump />
     </group>
   );
 }
@@ -188,7 +217,7 @@ function Bubbles({ count = 26 }: { count?: number }) {
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 20, 20]} />
-      <meshPhysicalMaterial color="#bfe9f0" transparent opacity={0.5} roughness={0.1} transmission={0.7} thickness={0.3} clearcoat={1} iridescence={0.6} />
+      <meshPhysicalMaterial color="#d8f1f5" transparent opacity={0.38} roughness={0.08} metalness={0.1} clearcoat={1} iridescence={0.6} envMapIntensity={1.2} />
     </instancedMesh>
   );
 }
@@ -203,16 +232,15 @@ function Rig() {
   return null;
 }
 
-export function Scene({ spin, focus }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number> }) {
+export function Scene({ spin, focus, onReady }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; onReady?: () => void }) {
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frameloop = reduced ? "demand" : "always";
-  useEffect(() => {}, []);
   return (
     <Canvas
       className="nab-scene"
-      dpr={[1, 1.75]}
-      shadows
+      dpr={[1, 1.5]}
       frameloop={frameloop}
+      onCreated={() => onReady?.()}
       camera={{ position: [0, 0.4, 9.2], fov: 30 }}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
@@ -220,18 +248,20 @@ export function Scene({ spin, focus }: { spin: React.MutableRefObject<number>; f
     >
       <Liquid />
       <ambientLight intensity={0.5} />
-      <directionalLight position={[3, 5, 4]} intensity={2.2} castShadow shadow-mapSize={[1024, 1024]} />
+      <directionalLight position={[3, 5, 4]} intensity={2.2} />
       <directionalLight position={[-4, 2, -2]} intensity={0.8} color={TEAL} />
       <Environment resolution={256}>
         <Lightformer intensity={3} position={[0, 4, -4]} scale={[8, 3, 1]} />
         <Lightformer intensity={2} position={[-5, 1, 2]} scale={[2, 6, 1]} color="#ffffff" />
         <Lightformer intensity={1.5} position={[5, 0, 2]} scale={[2, 6, 1]} color="#dff6fa" />
+        <Lightformer intensity={4} position={[-2, 2, 3]} scale={[0.4, 6, 1]} />
+        <Lightformer intensity={1.2} position={[-3, -4, 2]} scale={[4, 2, 1]} color={TEAL} />
       </Environment>
       <Float speed={reduced ? 0 : 1.2} rotationIntensity={0.15} floatIntensity={0.6}>
         <Bottle spin={spin} focus={focus} />
       </Float>
       <Bubbles />
-      <ContactShadows position={[0, -1.62, 0]} opacity={0.35} scale={8} blur={2.4} far={3} />
+      <ContactShadows position={[0, -1.66, 0]} opacity={0.35} scale={8} blur={2.4} far={3} />
       <Rig />
     </Canvas>
   );

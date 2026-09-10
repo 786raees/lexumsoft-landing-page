@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
@@ -58,8 +58,13 @@ function player(id: string, autoplay = false) {
 
 function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; title: string; autoplay?: boolean; poster: string }) {
   const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => { if (e.origin === "https://www.tiktok.com") setLoaded(true); };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
   return (
-    <div className="nab-tt">
+    <div className="nab-tt" style={{ backgroundImage: `url(${poster})` }}>
       <a
         className="nab-poster"
         href={`${TIKTOK}/video/${id}`}
@@ -77,7 +82,6 @@ function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; titl
         title={title}
         allow={autoplay ? "autoplay; encrypted-media" : "encrypted-media"}
         loading={autoplay ? "eager" : "lazy"}
-        onLoad={() => setLoaded(true)}
       />
     </div>
   );
@@ -86,6 +90,7 @@ function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; titl
 export function Concept() {
   const [active, setActive] = useState(4); // L-Arginine first: the growth story
   const [monthly, setMonthly] = useState(true);
+  const [ready, setReady] = useState(false);
   const ing = INGREDIENTS[active];
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
@@ -119,7 +124,12 @@ export function Concept() {
 
       <main id="top">
         <div className="nab-3d" ref={stageRef}>
-          <div className="nab-3d-canvas"><Scene spin={spin} focus={focus} /></div>
+          <div className="nab-3d-canvas">
+            <div className={`nab-boot${ready ? " off" : ""}`} aria-hidden="true">
+              <img src="/concepts/noaddedbs/bottle-cut.png" alt="" />
+            </div>
+            <Scene spin={spin} focus={focus} onReady={() => setReady(true)} />
+          </div>
           <div className="nab-3d-content">
             <section className="nab-wrap nab-hero">
               <div className="nab-hero-copy">
@@ -143,7 +153,13 @@ export function Concept() {
             </section>
 
             <section className="nab-wrap nab-labelsec" id="label">
-              <div className="nab-labelcard">
+              <motion.div
+                className="nab-labelcard"
+                initial={{ opacity: 0, y: reduced ? 0 : 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.7, ease }}
+              >
                 <h2>Read the label. Tap anything.</h2>
                 <p className="lede" style={{ marginTop: 10 }}>
                   Every ingredient, what it does, and what it replaces.
@@ -189,7 +205,7 @@ export function Concept() {
                 <p className="nab-note">
                   Concept only. In the build, this answers from the ingredient list above, not from the internet.
                 </p>
-              </div>
+              </motion.div>
             </section>
           </div>
         </div>

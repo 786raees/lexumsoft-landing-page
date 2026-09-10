@@ -24,9 +24,9 @@
 .nab-section { padding: 72px 0; }
 .nab-section + .nab-section { border-top: 1px solid var(--line); }
 
-.nab h1, .nab h2, .nab h3 { margin: 0; font-weight: 800; letter-spacing: -0.02em; line-height: 1.02; }
-.nab h1 { font-size: clamp(44px, 8vw, 92px); }
-.nab h2 { font-size: clamp(30px, 4.6vw, 50px); }
+.nab h1, .nab h2, .nab h3 { margin: 0; font-family: inherit; font-weight: 800; letter-spacing: -0.02em; line-height: 1.02; }
+.nab h1 { font-size: clamp(48px, 9vw, 108px); letter-spacing: -0.035em; line-height: 0.96; }
+.nab h2 { font-size: clamp(28px, 4vw, 44px); }
 .nab h3 { font-size: 22px; letter-spacing: -0.01em; line-height: 1.2; }
 .nab p { margin: 0; }
 .nab .lede { font-size: clamp(19px, 2.2vw, 24px); color: var(--ink-soft); max-width: 34ch; }
@@ -130,7 +130,7 @@
 .nab-foot a { color: var(--ink); text-decoration: none; font-weight: 500; }
 
 /* TikTok frame with poster fallback */
-.nab-tt { position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background: #000; }
+.nab-tt { position: relative; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background: #000 center / cover no-repeat; }
 .nab-tt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .nab-poster { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background-size: cover; background-position: center; color: #fff; text-decoration: none; font-weight: 700; }
 .nab-poster::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,42,51,0.1), rgba(15,42,51,0.55)); }
@@ -156,8 +156,21 @@
 .nab-videos .nab-phone .nab-tt { border-radius: 22px; }
 
 @media (max-width: 899px) {
-  .nab-hero { min-height: 100vh; align-content: end; padding-bottom: 56px; }
-  .nab-hero-copy { padding-top: 46vh; }
-  .nab-labelcard { background: rgba(247, 251, 252, 0.94); }
+  .nab-hero { min-height: 100vh; align-content: end; padding-bottom: 40px; }
+  .nab-hero-copy { padding-top: 40vh; }
+  .nab-hero-copy > * + * { margin-top: 14px; }
+  .nab-stamp { padding: 7px 12px; gap: 8px; font-size: 15px; }
+  .nab-stamp strong { font-size: 20px; }
+  .nab-labelsec { align-items: end; }
+  .nab-labelcard { background: rgba(247, 251, 252, 0.94); margin-top: 36vh; }
   .nab-videos-4 { grid-template-columns: 1fr 1fr; }
 }
+@media (max-width: 640px) {
+  .nab-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .nab-actions .nab-btn { justify-content: center; padding: 14px 12px; }
+}
+/* first paint before WebGL boots */
+.nab-boot { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; transition: opacity 500ms ease; }
+.nab-boot img { height: 72vh; width: auto; max-width: 90vw; object-fit: contain; transform: translateX(28vw); }
+.nab-boot.off { opacity: 0; }
+@media (max-width: 899px) { .nab-boot img { height: 40vh; transform: translateY(-24vh); } }
