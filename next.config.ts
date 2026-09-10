@@ -4,7 +4,30 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // Client concept pages embed the client's own TikTok videos, so this path
+        // allows TikTok's player in frames and its script; everything else matches the site.
+        source: "/concepts/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.tiktok.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self'",
+              "frame-src 'self' https://www.tiktok.com",
+              "media-src 'self' blob: https:",
+            ].join("; "),
+          },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
+        source: "/((?!concepts).*)",
         headers: [
           {
             key: "Content-Security-Policy",

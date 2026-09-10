@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface ContainerProps {
   children: React.ReactNode;
   className?: string;
-  as?: React.ElementType;
+  as?: "div" | "section" | "main" | "article" | "header" | "footer" | "nav" | "aside";
 }
 
 export function Container({ children, className, as: Comp = "div" }: ContainerProps) {
