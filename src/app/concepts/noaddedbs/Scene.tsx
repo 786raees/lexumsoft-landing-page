@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Float, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
+import { PROFILE } from "./profile";
 
 // The hero object: Logan's pump bottle, modelled procedurally so nothing is
 // downloaded. The label is drawn to a canvas texture from his real label copy.
@@ -14,7 +15,6 @@ const TEAL = "#1e9fb5";
 const INK = "#0f2a33";
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-const PROFILE: [number, number][] = [[0.562,0.0082],[0.5671,0.0327],[0.5661,0.0572],[0.5671,0.0817],[0.5671,0.1063],[0.5681,0.1308],[0.5651,0.1553],[0.5681,0.1798],[0.5681,0.2044],[0.5671,0.2289],[0.5671,0.2534],[0.5671,0.2779],[0.5671,0.3025],[0.5671,0.327],[0.5671,0.3515],[0.5681,0.376],[0.5661,0.4005],[0.5671,0.4251],[0.5681,0.4496],[0.5681,0.4741],[0.5661,0.4986],[0.5681,0.5232],[0.5661,0.5477],[0.5671,0.5722],[0.5681,0.5967],[0.5671,0.6213],[0.5671,0.6458],[0.5691,0.6703],[0.5681,0.6948],[0.5671,0.7193],[0.5671,0.7439],[0.5681,0.7684],[0.5671,0.7929],[0.5671,0.8174],[0.5681,0.842],[0.5681,0.8665],[0.5671,0.891],[0.5671,0.9155],[0.5671,0.9401],[0.562,0.9646],[0.5681,0.9891],[0.5671,1.0136],[0.5691,1.0381],[0.5681,1.0627],[0.5681,1.0872],[0.5691,1.1117],[0.5681,1.1362],[0.5671,1.1608],[0.5671,1.1853],[0.5681,1.2098],[0.5671,1.2343],[0.5681,1.2589],[0.5691,1.2834],[0.5671,1.3079],[0.5681,1.3324],[0.5691,1.3569],[0.5681,1.3815],[0.5671,1.406],[0.5691,1.4305],[0.5691,1.455],[0.5681,1.4796],[0.5681,1.5041],[0.5681,1.5286],[0.5681,1.5531],[0.5681,1.5777],[0.5681,1.6022],[0.5691,1.6267],[0.5671,1.6512],[0.5691,1.6757],[0.5681,1.7003],[0.5681,1.7248],[0.5691,1.7493],[0.5681,1.7738],[0.5671,1.7984],[0.5691,1.8229],[0.5681,1.8474],[0.5681,1.8719],[0.5691,1.8965],[0.5681,1.921],[0.5681,1.9455],[0.5681,1.97],[0.5681,1.9946],[0.5681,2.0191],[0.5681,2.0436],[0.5671,2.0681],[0.5691,2.0926],[0.5691,2.1172],[0.5681,2.1417],[0.5691,2.1662],[0.5681,2.1907],[0.5681,2.2153],[0.5681,2.2398],[0.5681,2.2643],[0.5681,2.2888],[0.5681,2.3134],[0.5691,2.3379],[0.5681,2.3624],[0.5691,2.3869],[0.5681,2.4114],[0.5691,2.436],[0.5691,2.4605],[0.5691,2.485],[0.5691,2.5095],[0.5681,2.5341],[0.5681,2.5586],[0.5681,2.5831],[0.5691,2.6076],[0.5671,2.6322],[0.5691,2.6567],[0.5702,2.6812],[0.5671,2.7057],[0.5691,2.7302],[0.5691,2.7548],[0.5681,2.7793],[0.5702,2.8038],[0.5691,2.8283],[0.5691,2.8529],[0.5691,2.8774],[0.564,2.9019],[0.5467,2.9264],[0.4772,2.951],[0.3372,2.9755],[0.2718,3.0]];
 
 // The hero object is Logan's actual bottle. The silhouette above was traced from
 // the 2000px store photo (IMG-7941), and the label texture is that same photo
@@ -46,7 +46,7 @@ function bodyGeometry(): THREE.LatheGeometry {
     const a = PROFILE[Math.max(0, i - 1)][0], b = PROFILE[Math.min(PROFILE.length - 1, i + 1)][0];
     return (a + r + b) / 3;
   });
-  pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] * 0.9, 0.0));
+  pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] - 0.05, 0.0), new THREE.Vector2(sm[0] - 0.012, 0.012));
   const cut = PROFILE.length - 9; // the last points are the shoulder: smooth them into a round-over
   PROFILE.slice(0, cut).forEach(([, y], i) => pts.push(new THREE.Vector2(sm[i], y)));
   const shoulder = new THREE.SplineCurve(PROFILE.slice(cut).map(([, y], j) => new THREE.Vector2(sm[cut + j], y)));
@@ -79,8 +79,8 @@ function headGeometry(): THREE.ExtrudeGeometry {
   sh.lineTo(-0.24, 3.74);
   sh.quadraticCurveTo(-0.19, 3.74, -0.16, 3.7);
   sh.closePath();
-  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.19, bevelEnabled: true, bevelSize: 0.07, bevelThickness: 0.07, bevelSegments: 8, curveSegments: 16 });
-  g.translate(0, 0, -0.095);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.16, bevelEnabled: true, bevelSize: 0.045, bevelThickness: 0.045, bevelSegments: 8, curveSegments: 16 });
+  g.translate(0, 0, -0.08);
   return g;
 }
 
@@ -136,7 +136,7 @@ function Pump() {
   );
 }
 
-function Bottle({ spin, focus }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number> }) {
+function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; shadow: React.RefObject<THREE.Group | null> }) {
   const group = useRef<THREE.Group>(null);
   const label = useLabel();
   const body = useMemo(() => bodyGeometry(), []);
@@ -164,14 +164,20 @@ function Bottle({ spin, focus }: { spin: React.MutableRefObject<number>; focus: 
     // in the last 10% of the stage the bottle lifts out instead of being sliced by the canvas edge
     const out = smooth(Math.max(0, (spin.current - 0.93) / 0.07));
     const x = wide ? 1.9 - t * 4.2 : 0;
-    const y = (wide ? -1.65 : 0.72 + t * 0.55) + out * 1.2;
+    const y = (wide ? -1.65 : 0.5 + t * 0.1) + out * 1.2;
     // recede behind the hero copy mid-glide, then come back
     const z = -1.6 * Math.sin(t * Math.PI);
     const pulse = 1 + Math.max(0, 1 - since * 3) * 0.04;
-    const sc = (wide ? 0.92 - out * 0.12 : 0.47 - t * 0.1) * pulse;
+    const sc = (wide ? 0.92 - out * 0.12 : 0.44 - t * 0.02) * pulse;
     g.position.x += (x - g.position.x) * Math.min(1, dt * 3);
     g.position.y += (y - g.position.y) * Math.min(1, dt * 3);
     g.position.z += (z - g.position.z) * Math.min(1, dt * 3);
+    const sh = shadow.current;
+    if (sh) {
+      sh.position.set(g.position.x, wide ? -1.66 : g.position.y - 0.02, g.position.z);
+      const k = (1 - out) * (1 - Math.min(1, Math.abs(g.position.z) / 1.6)) * (g.scale.x / 0.92);
+      sh.scale.setScalar(Math.max(0.001, k));
+    }
     g.scale.setScalar(g.scale.x + (sc - g.scale.x) * Math.min(1, dt * 3));
     if (focus.current !== lastFocus.current) { lastFocus.current = focus.current; pulseAt.current = state.clock.elapsedTime; }
   });
@@ -199,7 +205,7 @@ function Liquid() {
   });
   const uniforms = useMemo(() => ({ uTime: { value: 0 }, uColor: { value: new THREE.Color(TEAL) } }), []);
   return (
-    <mesh position={[0, 0, -3]} scale={[viewport.width * 2.2, viewport.height * 2.2, 1]}>
+    <mesh position={[0, 0, -3]} scale={[viewport.width * 1.5, viewport.height * 1.5, 1]}>
       <planeGeometry args={[1, 1, 1, 1]} />
       <shaderMaterial
         ref={mat}
@@ -267,7 +273,7 @@ function Bubbles({ focus }: { focus: React.MutableRefObject<number> }) {
   });
   return (
     <instancedMesh key={count} ref={mesh} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[1, 20, 20]} />
+      <sphereGeometry args={[1, viewport.width > 7 ? 20 : 10, viewport.width > 7 ? 20 : 10]} />
       <meshPhysicalMaterial color="#d8f1f5" transparent opacity={0.38} roughness={0.08} metalness={0.1} clearcoat={1} iridescence={0.6} envMapIntensity={1.2} />
     </instancedMesh>
   );
@@ -286,10 +292,12 @@ function Rig() {
 export function Scene({ spin, focus, onReady, active = true }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; onReady?: () => void; active?: boolean }) {
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frameloop = !active ? "never" : reduced ? "demand" : "always";
+  const mobile = typeof window !== "undefined" && window.innerWidth < 900;
+  const shadow = useRef<THREE.Group>(null);
   return (
     <Canvas
       className="nab-scene"
-      dpr={[1, 1.5]}
+      dpr={[1, mobile ? 1.25 : 1.5]}
       frameloop={frameloop}
       onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; onReady?.(); }}
       camera={{ position: [0, 0.4, 9.2], fov: 30 }}
@@ -299,20 +307,23 @@ export function Scene({ spin, focus, onReady, active = true }: { spin: React.Mut
     >
       <Liquid />
       <ambientLight intensity={0.5} />
-      <directionalLight position={[3, 5, 4]} intensity={2.2} />
-      <directionalLight position={[-4, 2, -2]} intensity={0.8} color={TEAL} />
+      <directionalLight position={[4, 6, 6]} intensity={2.6} />
+      <directionalLight position={[-4, 2, -2]} intensity={0.4} color={TEAL} />
       <directionalLight position={[-3, 3, -5]} intensity={1.6} />
       <Environment resolution={256}>
         <Lightformer intensity={3} position={[0, 4, -4]} scale={[8, 3, 1]} />
         <Lightformer intensity={2} position={[-5, 1, 2]} scale={[2, 6, 1]} color="#ffffff" />
         <Lightformer intensity={1.5} position={[5, 0, 2]} scale={[2, 6, 1]} color="#dff6fa" />
         <Lightformer intensity={4} position={[-2, 2, 3]} scale={[0.4, 6, 1]} />
+        <Lightformer intensity={3} position={[3, 2, 4]} scale={[0.3, 6, 1]} />
         <Lightformer intensity={1.2} position={[-3, -4, 2]} scale={[4, 2, 1]} color={TEAL} />
       </Environment>
       <Float speed={reduced ? 0 : 1.2} rotationIntensity={0.15} floatIntensity={0.6}>
-        <Bottle spin={spin} focus={focus} />
+        <Bottle spin={spin} focus={focus} shadow={shadow} />
       </Float>
-      <ContactShadows position={[0, -1.66, 0]} opacity={0.35} scale={8} blur={2.4} far={3} />
+      <group ref={shadow} position={[1.9, -1.66, 0]}>
+        <ContactShadows opacity={0.35} scale={6} blur={2.4} far={3} />
+      </group>
       <Rig />
     </Canvas>
   );

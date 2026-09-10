@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { preload } from "react-dom";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useInView,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
+import { PROFILE } from "./profile";
 
 if (typeof window !== "undefined") preload("/concepts/noaddedbs/label.jpg", { as: "image" });
 
@@ -14,6 +25,12 @@ const rise = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.7, ease, delay },
+});
+const inView = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.4 },
+  transition: { duration: 0.6, ease, delay },
 });
 
 const SHOP_URL = "https://noaddedbs.com/products/all-natural-shampoo-duo";
@@ -90,16 +107,275 @@ function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; titl
   );
 }
 
+/* ---------- Ask: answers only from the ingredient list above ---------- */
+
+const STOP = new Set(["the", "and", "for", "with", "that", "this", "does", "have", "has", "what", "why", "how", "can", "is", "it", "my", "in", "on", "of", "to", "a", "an", "are", "you", "your", "use", "shampoo", "hair", "safe"]);
+const tokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w));
+
+const INTENTS: { test: RegExp; answer: string; pick?: number }[] = [
+  { test: /colou?r|dye|bleach|highlight/, answer: "Nothing on the label strips colour. There are no sulfates, which are what fade dye fastest. The cleansers are disodium cocoyl glutamate and decyl glucoside, both coconut-derived and mild.", pick: 1 },
+  { test: /kid|child|baby|toddler|eye/, answer: "The lather comes from decyl glucoside, which is chosen for staying gentle on eyes and sensitive skin. Nine ingredients, nothing you would need to look up.", pick: 2 },
+  { test: /smell|scent|fragran|perfume/, answer: "There is no synthetic fragrance in the ingredient list. This concept can't smell it for you, so that is one for Logan's videos.", pick: 5 },
+  { test: /grow|growth|thin|loss|bald/, answer: "L-Arginine is the growth ingredient: an amino acid that supports blood flow in the scalp, which is where strong hair starts. Argan oil and vitamin E look after the strands.", pick: 4 },
+  { test: /dry|itch|flak|dandruff|frizz/, answer: "Glycerin pulls water into the scalp and strands, so dryness, itch and breakage go down. Argan oil tames frizz and adds shine.", pick: 3 },
+  { test: /sulfate|sulphate|paraben|silicone|phthalate|chemical/, answer: "None of those are in it. No sulfates, no parabens, no silicones, no phthalates, no synthetic fragrance. That is why Yuka scores it 100 out of 100.", pick: 1 },
+  { test: /last|long|month|size|oz|ml|big/, answer: "It is a 12 fl oz (350 ml) bottle, and for most people a bottle lasts about a month. The 2-pack covers two months and the subscription sends the next one before you run out." },
+  { test: /price|cost|much|cheap|expens|\$/, answer: "One bottle is $21.99 on the live store. This concept proposes a 2-pack and a 15% subscription discount, which is on the call agenda." },
+];
+
+function answerFor(q: string): { text: string; pick?: number } {
+  const lower = q.toLowerCase();
+  for (const it of INTENTS) if (it.test.test(lower)) return { text: it.answer, pick: it.pick };
+  const qs = tokens(q);
+  let best = -1, score = 0;
+  INGREDIENTS.forEach((ing, i) => {
+    const hay = new Set(tokens(`${ing.name} ${ing.role} ${ing.does} ${ing.replaces}`));
+    const s = qs.reduce((n, w) => n + (hay.has(w) ? 1 : 0), 0) + (lower.includes(ing.name.toLowerCase()) ? 3 : 0);
+    if (s > score) { score = s; best = i; }
+  });
+  if (best >= 0 && score > 0) {
+    const ing = INGREDIENTS[best];
+    return { text: `${ing.name}: ${ing.does} It stands in for ${ing.replaces.charAt(0).toLowerCase()}${ing.replaces.slice(1)}`, pick: best };
+  }
+  return { text: "That one is not on the label, so this box will not guess. Ask about any of the nine ingredients, colour-treated hair, kids, scent, growth, dryness, or price." };
+}
+
+function Typewriter({ text }: { text: string }) {
+  const reduced = useReducedMotion();
+  const [n, setN] = useState(reduced ? text.length : 0);
+  useEffect(() => {
+    if (reduced) { setN(text.length); return; }
+    setN(0);
+    const id = window.setInterval(() => setN((v) => { if (v >= text.length) { window.clearInterval(id); return v; } return v + 1; }), 18);
+    return () => window.clearInterval(id);
+  }, [text, reduced]);
+  return <p>{text.slice(0, n)}<span className="nab-caret" aria-hidden="true" hidden={n >= text.length} /></p>;
+}
+
+const SUGGEST = ["Is it safe for coloured hair?", "Which one helps growth?", "Does it have sulfates?"];
+
+function Ask({ onPick }: { onPick: (i: number) => void }) {
+  const [q, setQ] = useState("");
+  const [a, setA] = useState<{ q: string; text: string } | null>(null);
+  const submit = (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+    const r = answerFor(t);
+    setA({ q: t, text: r.text });
+    if (r.pick !== undefined) onPick(r.pick);
+  };
+  return (
+    <div className="nab-askwrap">
+      <form className="nab-ask" onSubmit={(e) => { e.preventDefault(); submit(q); }}>
+        <input type="text" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask about the shampoo" aria-label="Ask about the shampoo" />
+        <button className="nab-btn primary" type="submit">Ask</button>
+      </form>
+      <div className="nab-suggest" aria-label="Example questions">
+        {SUGGEST.map((s) => (
+          <button key={s} type="button" onClick={() => { setQ(s); submit(s); }}>{s}</button>
+        ))}
+      </div>
+      <AnimatePresence>
+        {a && (
+          <motion.div key={a.q} className="nab-answer" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} aria-live="polite">
+            <Typewriter text={a.text} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <p className="nab-note">Answers come from the ingredient list on this page, not from the internet.</p>
+    </div>
+  );
+}
+
+/* ---------- Mobile: ingredient names rise from the spout during the stage ---------- */
+
+function RainWord({ p, i, name }: { p: MotionValue<number>; i: number; name: string }) {
+  // two columns either side of the bottle, five rows, each word rising into its slot
+  const start = 0.16 + i * 0.03;
+  const opacity = useTransform(p, [start, start + 0.05, 0.56, 0.64], [0, 1, 1, 0]);
+  const y = useTransform(p, [start, start + 0.18], [40, -30 - Math.floor(i / 2) * 44]);
+  const x = (i % 2 ? 1 : -1) * 108;
+  return (
+    <motion.span className="nab-rainword" style={{ opacity, y, x }}>
+      {name}
+    </motion.span>
+  );
+}
+
+/* ---------- Timeline: scrubbed track on desktop ---------- */
+
+function Frame({ i, p, children, caption, note, lead }: { i: number; p: MotionValue<number>; children: React.ReactNode; caption: string; note: string; lead?: boolean }) {
+  const c = i / 3;
+  const rotateY = useTransform(p, [c - 0.4, c, c + 0.4], [16, 0, -16]);
+  const scale = useTransform(p, [c - 0.4, c, c + 0.4], [0.94, 1, 0.94]);
+  return (
+    <motion.figure className={lead ? "nab-lead" : undefined} style={{ rotateY, scale }}>
+      <div className={lead ? "frame nab-phone" : "frame"}>{children}</div>
+      <figcaption>
+        {caption}
+        <span>{note}</span>
+      </figcaption>
+    </motion.figure>
+  );
+}
+
+function Timeline() {
+  const ref = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [dist, setDist] = useState(0);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const [wide, setWide] = useState(false);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const w = window.innerWidth >= 900;
+      setWide(w);
+      const t = trackRef.current;
+      if (t && w) setDist(Math.max(0, t.scrollWidth - t.clientWidth));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  const x = useTransform(scrollYProgress, [0.05, 0.95], [0, -dist]);
+  const rail = useTransform(scrollYProgress, [0.05, 0.95], [0, 1]);
+  const frames = (
+    <>
+      <Frame i={0} p={scrollYProgress} caption="Today" note="Filmed by Logan, @theeloganstowers" lead>
+        <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/lifestyle-1.jpg" />
+      </Frame>
+      {VIDEOS.map((v, i) => (
+        <Frame key={v.id} i={i + 1} p={scrollYProgress} caption={v.label} note={v.note}>
+          <TikTokFrame id={v.id} title={`${v.label}: ${v.note}`} poster={v.poster} />
+        </Frame>
+      ))}
+    </>
+  );
+  return (
+    <section className={`nab-section nab-timeline${wide ? " scrub" : ""}`} id="timeline" ref={ref}>
+      <div className="nab-timeline-sticky">
+        <div className="nab-wrap">
+          <p className="nab-kicker">The timeline</p>
+          <h2>Forty weeks, on camera.</h2>
+          <p className="lede" style={{ marginTop: 14 }}>
+            Logan filmed the whole thing. No stock photo appears on this page.
+          </p>
+          <div className="nab-rail" aria-hidden="true">
+            <span>Today</span>
+            <i><motion.b style={{ scaleX: rail }} /></i>
+            <span>Month ten</span>
+          </div>
+        </div>
+        <div className="nab-wrap nab-trackwrap" ref={trackRef}>
+          <motion.div className="nab-videos nab-videos-4" style={wide ? { x } : undefined}>{frames}</motion.div>
+        </div>
+        <div className="nab-wrap">
+          <p className="nab-note">Videos play from Logan&apos;s public TikTok. Captions are placeholders until he picks the three clips.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Proof: the 100 counts up and a ring draws around it ---------- */
+
+const NOS = ["No sulfates", "No parabens", "No phthalates", "No synthetic fragrance", "No silicones", "Nothing you would need to look up"];
+
+function Proof() {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const seen = useInView(ref, { once: true, amount: 0.5 });
+  const [n, setN] = useState(reduced ? 100 : 0);
+  useEffect(() => {
+    if (!seen || reduced) return;
+    const c = animate(0, 100, { duration: 1.4, ease: [0.2, 0.7, 0.2, 1], onUpdate: (v) => setN(Math.round(v)) });
+    return () => c.stop();
+  }, [seen, reduced]);
+  return (
+    <section className="nab-section nab-proofsec" id="proof">
+      <div className="nab-wrap nab-proof" ref={ref}>
+        <div>
+          <p className="nab-kicker">The score</p>
+          <div className="nab-bigwrap">
+            <svg className="nab-ring" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="46" />
+              <motion.circle cx="50" cy="50" r="46" initial={{ pathLength: 0 }} animate={{ pathLength: seen ? 1 : 0 }} transition={{ duration: 1.4, ease }} />
+            </svg>
+            <div className="nab-big" aria-hidden="true">{n}</div>
+          </div>
+          <h2>Out of 100 on Yuka.</h2>
+          <p style={{ marginTop: 14, maxWidth: "46ch" }}>
+            Yuka scans a product&apos;s ingredient list and scores it for safety. Most shampoos land in the
+            forties or fifties. This one scored a perfect 100, because there is nothing on the label that Yuka
+            flags. That is the whole point of the name.
+          </p>
+        </div>
+        <ul className="nab-nos">
+          {NOS.map((t, i) => (
+            <motion.li key={t} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.6 }} transition={{ duration: 0.45, ease, delay: i * 0.08 }}>
+              <motion.i initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, amount: 0.6 }} transition={{ duration: 0.45, ease, delay: 0.1 + i * 0.08 }} />
+              {t}
+            </motion.li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Subscribe: a bottle that drains over 30 days as you scroll ---------- */
+
+function bottlePath(): string {
+  // silhouette in a 200x400 box: x mirrored around 100, y from the base (380) up; body height 3 -> 300px
+  const k = 100;
+  const right = PROFILE.map(([r, y]) => `${(100 + r * k).toFixed(1)},${(380 - y * k).toFixed(1)}`);
+  const left = [...PROFILE].reverse().map(([r, y]) => `${(100 - r * k).toFixed(1)},${(380 - y * k).toFixed(1)}`);
+  return `M${right.join(" L")} L${left.join(" L")} Z`;
+}
+
+function Gauge() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 80%", "end 40%"] });
+  const level = useTransform(scrollYProgress, [0, 1], [0.96, 0.12]);
+  const y = useTransform(level, (l) => 380 - 300 * l);
+  const h = useTransform(level, (l) => 300 * l);
+  const day = useTransform(level, (l) => Math.round(1 + (1 - (l - 0.12) / 0.84) * 29));
+  const [d, setD] = useState(1);
+  useMotionValueEvent(day, "change", (v) => setD(Math.max(1, Math.min(30, v))));
+  const path = bottlePath();
+  return (
+    <div className="nab-gauge" ref={ref}>
+      <svg viewBox="0 0 200 400" aria-hidden="true">
+        <defs>
+          <clipPath id="nab-bottle-clip"><path d={path} /></clipPath>
+        </defs>
+        <path d={path} className="glass" />
+        <motion.rect x="0" width="200" y={y} height={h} className="liquid" clipPath="url(#nab-bottle-clip)" />
+        <rect x="74" y="42" width="52" height="40" rx="6" className="pump" />
+        <rect x="90" y="14" width="20" height="30" rx="4" className="pump" />
+        <rect x="52" y="6" width="60" height="16" rx="8" className="pump" />
+        <line x1="166" x2="206" y1="329.6" y2="329.6" className="tick" />
+        <text x="210" y="334" textAnchor="start" className="ticklabel">day 25</text>
+      </svg>
+      <div className="nab-gauge-day"><strong>Day {d}</strong><span>{d >= 25 ? "Refill reminder sent" : "of about 30"}</span></div>
+    </div>
+  );
+}
+
+/* ---------- Page ---------- */
+
 export function Concept() {
   const [active, setActive] = useState(4); // L-Arginine first: the growth story
   const [monthly, setMonthly] = useState(true);
   const [ready, setReady] = useState(false);
   const [stageOn, setStageOn] = useState(true);
+  const [compact, setCompact] = useState(false);
   const ing = INGREDIENTS[active];
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
   const spin = useRef(0);
   const focus = useRef(0);
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (v) => setCompact(v > 80));
   const { scrollYProgress: stageP } = useScroll({ target: stageRef, offset: ["start start", "end end"] });
   useMotionValueEvent(stageP, "change", (v) => { spin.current = v; });
   const heroFade = useTransform(stageP, [0, 0.2], [1, 0]);
@@ -111,10 +387,8 @@ export function Concept() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  const proofRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: proofRef, offset: ["start end", "center center"] });
-  const bigScale = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [0.6, 1]);
-  const bigY = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [60, 0]);
+
+  const pick = (i: number) => { setActive(i); focus.current = i + 1; };
 
   const single = 21.99;
   const duo = 39.99;
@@ -123,16 +397,22 @@ export function Concept() {
 
   return (
     <>
-      <header className="nab-wrap nab-bar">
-        <a className="nab-brand" href="#top" aria-label="No Added BS home">
-          <span className="mark" aria-hidden="true" />
-          No Added BS
-        </a>
-        <nav aria-label="Sections">
-          <a href="#label">The label</a>
-          <a href="#timeline">The timeline</a>
-          <a href="#buy">Subscribe</a>
-        </nav>
+      <header className={`nab-bar${compact ? " compact" : ""}`}>
+        <div className="nab-wrap nab-bar-in">
+          <a className="nab-brand" href="#top" aria-label="No Added BS home">
+            <span className="mark" aria-hidden="true" />
+            No Added BS
+          </a>
+          <nav aria-label="Sections">
+            <a href="#label">The label</a>
+            <a href="#timeline">The timeline</a>
+            <a href="#buy">Subscribe</a>
+          </nav>
+          <div className="nab-bar-cta">
+            <a className="nab-asklink" href="#label">Ask</a>
+            <a className="nab-pill" href={SINGLE_URL}>Shop <span>$21.99</span></a>
+          </div>
+        </div>
       </header>
 
       <main id="top">
@@ -142,6 +422,11 @@ export function Concept() {
               <img src="/concepts/noaddedbs/bottle-cut.webp" alt="" width={264} height={900} />
             </div>
             <Scene spin={spin} focus={focus} active={stageOn} onReady={() => setReady(true)} />
+            <div className="nab-rain" aria-hidden="true">
+              {INGREDIENTS.map((it, i) => (
+                <RainWord key={it.name} p={stageP} i={i} name={it.name} />
+              ))}
+            </div>
           </div>
           <div className="nab-3d-content">
             <section className="nab-wrap nab-hero">
@@ -173,6 +458,7 @@ export function Concept() {
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.7, ease }}
               >
+                <p className="nab-kicker">The label</p>
                 <h2>Read the label. Tap anything.</h2>
                 <p className="lede" style={{ marginTop: 10 }}>
                   Every ingredient, what it does, and what it replaces.
@@ -184,7 +470,7 @@ export function Concept() {
                       type="button"
                       className="nab-chip"
                       aria-pressed={i === active}
-                      onClick={() => { setActive(i); focus.current = i + 1; }}
+                      onClick={() => pick(i)}
                     >
                       {it.name}
                     </button>
@@ -211,88 +497,35 @@ export function Concept() {
                     </motion.div>
                   </AnimatePresence>
                 </div>
-                <form className="nab-ask" onSubmit={(e) => e.preventDefault()}>
-                  <input type="text" placeholder="Ask about the shampoo, for example: is it safe for coloured hair?" aria-label="Ask about the shampoo" />
-                  <button className="nab-btn primary" type="submit">Ask</button>
-                </form>
-                <p className="nab-note">
-                  Concept only. In the build, this answers from the ingredient list above, not from the internet.
-                </p>
+                <Ask onPick={pick} />
               </motion.div>
             </section>
           </div>
         </div>
 
-        <section className="nab-section" id="timeline">
-          <div className="nab-wrap">
-            <h2>Forty weeks, on camera.</h2>
-            <p className="lede" style={{ marginTop: 14 }}>
-              Logan filmed the whole thing. No stock photo appears on this page.
-            </p>
-            <div className="nab-videos nab-videos-4">
-              <figure className="nab-lead">
-                <div className="frame nab-phone">
-                  <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/lifestyle-1.jpg" />
-                </div>
-                <figcaption>
-                  Today
-                  <span>Filmed by Logan, @theeloganstowers</span>
-                </figcaption>
-              </figure>
-              {VIDEOS.map((v) => (
-                <figure key={v.id}>
-                  <div className="frame">
-                    <TikTokFrame id={v.id} title={`${v.label}: ${v.note}`} poster={v.poster} />
-                  </div>
-                  <figcaption>
-                    {v.label}
-                    <span>{v.note}</span>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-            <p className="nab-note">
-              Videos play from Logan&apos;s public TikTok. Captions are placeholders until he picks the three clips.
-            </p>
-          </div>
-        </section>
+        <Timeline />
 
-        <section className="nab-section" id="proof">
-          <div className="nab-wrap nab-proof" ref={proofRef}>
-            <div>
-              <motion.div className="nab-big" aria-hidden="true" style={{ scale: bigScale, y: bigY, transformOrigin: "left bottom" }}>100</motion.div>
-              <h2>Out of 100 on Yuka.</h2>
-              <p style={{ marginTop: 14, maxWidth: "46ch" }}>
-                Yuka scans a product&apos;s ingredient list and scores it for safety. Most shampoos land in the
-                forties or fifties. This one scored a perfect 100, because there is nothing on the label that Yuka
-                flags. That is the whole point of the name.
-              </p>
-            </div>
-            <ul className="nab-nos">
-              <li>No sulfates</li>
-              <li>No parabens</li>
-              <li>No phthalates</li>
-              <li>No synthetic fragrance</li>
-              <li>No silicones</li>
-              <li>Nothing you would need to look up</li>
-            </ul>
-          </div>
-        </section>
+        <Proof />
 
         <section className="nab-section" id="buy">
           <div className="nab-wrap nab-buy">
-            <img src="/concepts/noaddedbs/duo.png" alt="Two bottles of No Added BS shampoo" width={1024} height={1024} />
+            <Gauge />
             <div>
-              <h2>A bottle lasts about a month.</h2>
-              <p className="lede" style={{ marginTop: 14 }}>
+              <p className="nab-kicker">Subscribe</p>
+              <motion.h2 {...inView(0)}>A bottle lasts about a month.</motion.h2>
+              <motion.p className="lede" style={{ marginTop: 14 }} {...inView(0.08)}>
                 Get the next one before you run out, at 15% off.
-              </p>
+              </motion.p>
               <div className="nab-toggle" role="group" aria-label="Purchase type" style={{ marginTop: 22 }}>
-                <button type="button" aria-pressed={!monthly} onClick={() => setMonthly(false)}>One time</button>
-                <button type="button" aria-pressed={monthly} onClick={() => setMonthly(true)}>Every 30 days</button>
+                {([false, true] as const).map((m) => (
+                  <button key={String(m)} type="button" aria-pressed={monthly === m} onClick={() => setMonthly(m)}>
+                    {monthly === m && <motion.i className="nab-toggle-pill" layoutId="nab-toggle-pill" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
+                    <span>{m ? "Every 30 days" : "One time"}</span>
+                  </button>
+                ))}
               </div>
               <div className="nab-plans">
-                <a className="nab-plan" href={SINGLE_URL}>
+                <motion.a className="nab-plan" href={SINGLE_URL} whileTap={{ scale: 0.985 }}>
                   <div>
                     All-natural shampoo, 12 oz
                     <small>{monthly ? "Ships every 30 days. Skip or cancel any time." : "One bottle, one order."}</small>
@@ -304,8 +537,8 @@ export function Concept() {
                       </motion.span>
                     </AnimatePresence>
                   </div>
-                </a>
-                <a className="nab-plan pick" href={SHOP_URL}>
+                </motion.a>
+                <motion.a className="nab-plan pick" href={SHOP_URL} whileTap={{ scale: 0.985 }}>
                   <div>
                     The 2-pack
                     <small>{monthly ? "Two months of hair, every 60 days." : "Most people start here."}</small>
@@ -317,7 +550,7 @@ export function Concept() {
                       </motion.span>
                     </AnimatePresence>
                   </div>
-                </a>
+                </motion.a>
               </div>
               <p className="nab-note">
                 Concept pricing. The single is $21.99 on the live store; the 2-pack and subscription discount are
@@ -329,6 +562,7 @@ export function Concept() {
 
         <section className="nab-section" id="reviews">
           <div className="nab-wrap">
+            <p className="nab-kicker">Reviews</p>
             <h2>Your verified reviews go here.</h2>
             <div className="nab-reviews">
               <div className="stars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
@@ -342,8 +576,9 @@ export function Concept() {
         </section>
 
         <section className="nab-section" id="refill">
-          <div className="nab-wrap nab-capture">
+          <motion.div className="nab-wrap nab-capture" {...inView(0)}>
             <div>
+              <p className="nab-kicker light">Refill</p>
               <h2>Get the refill reminder.</h2>
               <p style={{ marginTop: 10 }}>
                 One email at day 25, with a discount on the next bottle. Nothing else unless you ask.
@@ -353,7 +588,7 @@ export function Concept() {
               <input type="email" placeholder="you@email.com" aria-label="Email address" />
               <button className="nab-btn" type="submit">Remind me</button>
             </form>
-          </div>
+          </motion.div>
           <div className="nab-wrap">
             <p className="nab-note">
               In the build this is the Klaviyo entry point: welcome, abandoned cart, post-purchase, and the day-25 refill flow.
