@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { preload } from "react-dom";
 import {
@@ -37,6 +37,8 @@ const inView = (delay = 0) => ({
 const SHOP_URL = "https://noaddedbs.com/products/all-natural-shampoo-duo";
 const SINGLE_URL = "https://noaddedbs.com/products/all-natural-shampoo";
 const TIKTOK = "https://www.tiktok.com/@theeloganstowers";
+
+const SHORT = ["Water", "Cocoyl glutamate", "Decyl glucoside", "Glycerin", "L-Arginine", "Argan oil", "Radish ferment", "Plant cellulose", "Vitamin E"];
 
 const INGREDIENTS: { name: string; role: string; does: string; replaces: string }[] = [
   { name: "Water", role: "Base", does: "Carries every other ingredient evenly so each wash is the same strength.", replaces: "Nothing. It is the one thing every shampoo shares." },
@@ -201,10 +203,12 @@ function Ask({ onPick }: { onPick: (i: number) => void }) {
 
 function RainWord({ p, i, name }: { p: MotionValue<number>; i: number; name: string }) {
   // two columns either side of the bottle, five rows; each word rises 28px into its own slot
+  const reduced = useReducedMotion();
   const start = 0.16 + i * 0.03;
   const slot = -30 - Math.floor(i / 2) * 44;
-  const opacity = useTransform(p, [start, start + 0.05, 0.56, 0.64], [0, 1, 1, 0]);
-  const y = useTransform(p, [start, start + 0.16], [slot + 28, slot]);
+  const opacity = useTransform(p, [start, start + 0.05, 0.44, 0.5], [0, 1, 1, 0]);
+  const rise = useTransform(p, [start, start + 0.16], [slot + 28, slot]);
+  const y = reduced ? slot : rise;
   return (
     <motion.span className={`nab-rainword ${i % 2 ? "r" : "l"}`} style={{ opacity, y }}>
       {name}
@@ -299,9 +303,10 @@ function Proof() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const seen = useInView(ref, { once: true, amount: 0.5 });
-  const [n, setN] = useState(reduced ? 100 : 0);
+  const [n, setN] = useState(0);
   useEffect(() => {
-    if (!seen || reduced) return;
+    if (reduced) { setN(100); return; }
+    if (!seen) return;
     const c = animate(0, 100, { duration: 1.4, ease: [0.2, 0.7, 0.2, 1], onUpdate: (v) => setN(Math.round(v)) });
     return () => c.stop();
   }, [seen, reduced]);
@@ -382,6 +387,7 @@ export function Concept() {
   const [active, setActive] = useState(4); // L-Arginine first: the growth story
   const [monthly, setMonthly] = useState(true);
   const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
   const [stageOn, setStageOn] = useState(true);
   const [compact, setCompact] = useState(false);
   const ing = INGREDIENTS[active];
@@ -392,7 +398,8 @@ export function Concept() {
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (v) => setCompact(v > 80));
   const { scrollYProgress: stageP } = useScroll({ target: stageRef, offset: ["start start", "end end"] });
-  useMotionValueEvent(stageP, "change", (v) => { spin.current = v; });
+  const [stageDone, setStageDone] = useState(false);
+  useMotionValueEvent(stageP, "change", (v) => { spin.current = v; setStageDone(v > 0.985); });
   const heroFade = useTransform(stageP, [0, 0.2], [1, 0]);
   useEffect(() => {
     // stop rendering the canvas once the reader is past the 3D stage
@@ -403,7 +410,14 @@ export function Concept() {
     return () => io.disconnect();
   }, []);
 
+  const chipsRef = useRef<HTMLDivElement>(null);
   const pick = (i: number) => { setActive(i); focus.current = i + 1; };
+  useEffect(() => {
+    const el = chipsRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    const chip = el.querySelector<HTMLElement>('[aria-pressed="true"]');
+    if (chip) el.scrollTo({ left: chip.offsetLeft - (el.clientWidth - chip.offsetWidth) / 2, behavior: reduced ? "auto" : "smooth" });
+  }, [active, reduced]);
 
   const single = 21.99;
   const duo = 39.99;
@@ -436,10 +450,10 @@ export function Concept() {
             <div className={`nab-boot${ready ? " off" : ""}`} aria-hidden="true">
               <img src="/concepts/noaddedbs/bottle-cut.webp" alt="" width={264} height={900} />
             </div>
-            <Scene spin={spin} focus={focus} active={stageOn} onReady={() => setReady(true)} />
+            <Scene spin={spin} focus={focus} active={stageOn && !stageDone} onReady={onReady} />
             <div className="nab-rain" aria-hidden="true">
               {INGREDIENTS.map((it, i) => (
-                <RainWord key={it.name} p={stageP} i={i} name={it.name} />
+                <RainWord key={it.name} p={stageP} i={i} name={SHORT[i]} />
               ))}
             </div>
           </div>
@@ -478,7 +492,7 @@ export function Concept() {
                 <p className="lede" style={{ marginTop: 10 }}>
                   Every ingredient, what it does, and what it replaces.
                 </p>
-                <div className="nab-chips" role="group" aria-label="Ingredients">
+                <div className="nab-chips" role="group" aria-label="Ingredients" ref={chipsRef}>
                   {INGREDIENTS.map((it, i) => (
                     <button
                       key={it.name}

@@ -20,9 +20,9 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
 // the 2000px store photo (IMG-7941), and the label texture is that same photo
 // unwrapped around the cylinder, so the print, logo and type are the real ones.
 // Body height is 3 units; the pump is measured from the same photo.
-function useLabel(): THREE.Texture | null {
+function useLabel(onReady?: () => void): THREE.Texture | null {
   const [t, setT] = useState<THREE.Texture | null>(null);
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   useEffect(() => {
     let live = true;
     new THREE.TextureLoader().load("/concepts/noaddedbs/label.jpg", (tex) => {
@@ -33,9 +33,12 @@ function useLabel(): THREE.Texture | null {
       tex.offset.x = 0.5; // texture centre (the front panel) sits at +z
       tex.needsUpdate = true;
       setT(tex);
+      invalidate();
+      // the poster crossfades only once the real label is on the bottle
+      window.setTimeout(() => onReady?.(), 120);
     });
     return () => { live = false; };
-  }, [gl]);
+  }, [gl, invalidate, onReady]);
   return t;
 }
 
@@ -46,7 +49,7 @@ function bodyGeometry(): THREE.LatheGeometry {
     const a = PROFILE[Math.max(0, i - 1)][0], b = PROFILE[Math.min(PROFILE.length - 1, i + 1)][0];
     return (a + r + b) / 3;
   });
-  pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] - 0.05, 0.0), new THREE.Vector2(sm[0] - 0.012, 0.012));
+  pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] - 0.06, 0.0), new THREE.Vector2(sm[0] - 0.03, 0.006), new THREE.Vector2(sm[0] - 0.012, 0.03));
   const cut = PROFILE.length - 9; // the last points are the shoulder: smooth them into a round-over
   PROFILE.slice(0, cut).forEach(([, y], i) => pts.push(new THREE.Vector2(sm[i], y)));
   const shoulder = new THREE.SplineCurve(PROFILE.slice(cut).map(([, y], j) => new THREE.Vector2(sm[cut + j], y)));
@@ -73,9 +76,9 @@ function headGeometry(): THREE.ExtrudeGeometry {
   sh.quadraticCurveTo(0.225, 3.7, 0.225, 3.76);
   sh.quadraticCurveTo(0.225, 3.815, 0.14, 3.815);
   sh.lineTo(-0.05, 3.815);
-  sh.quadraticCurveTo(-0.3, 3.815, -0.42, 3.79);
-  sh.quadraticCurveTo(-0.46, 3.775, -0.45, 3.74);
-  sh.quadraticCurveTo(-0.44, 3.705, -0.4, 3.71);
+  sh.quadraticCurveTo(-0.32, 3.815, -0.46, 3.78);
+  sh.quadraticCurveTo(-0.51, 3.76, -0.5, 3.72);
+  sh.quadraticCurveTo(-0.49, 3.69, -0.44, 3.7);
   sh.lineTo(-0.24, 3.74);
   sh.quadraticCurveTo(-0.19, 3.74, -0.16, 3.7);
   sh.closePath();
@@ -128,7 +131,7 @@ function Pump() {
         <meshPhysicalMaterial {...PLASTIC} />
       </mesh>
       {/* the outlet slot at the spout tip */}
-      <mesh position={[-0.44, 3.722, 0]} rotation={[0, 0, 0.3]}>
+      <mesh position={[-0.49, 3.712, 0]} rotation={[0, 0, 0.3]}>
         <boxGeometry args={[0.03, 0.02, 0.09]} />
         <meshStandardMaterial color="#5a6b70" roughness={0.9} />
       </mesh>
@@ -136,9 +139,9 @@ function Pump() {
   );
 }
 
-function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; shadow: React.RefObject<THREE.Group | null> }) {
+function Bottle({ spin, focus, shadow, onReady }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; shadow: React.RefObject<THREE.Group | null>; onReady?: () => void }) {
   const group = useRef<THREE.Group>(null);
-  const label = useLabel();
+  const label = useLabel(onReady);
   const body = useMemo(() => bodyGeometry(), []);
   const targetY = useRef(0);
   const lastFocus = useRef(0);
@@ -175,6 +178,13 @@ function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>;
     g.position.x += (x - g.position.x) * Math.min(1, dt * 3);
     g.position.y += (y - g.position.y) * Math.min(1, dt * 3);
     g.position.z += (z - g.position.z) * Math.min(1, dt * 3);
+    // fade the whole bottle as it lifts out, instead of letting the canvas edge slice it
+    g.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.Material | undefined;
+      if (!m || (o as THREE.InstancedMesh).isInstancedMesh) return;
+      m.transparent = out > 0.001;
+      m.opacity = 1 - out;
+    });
     const sh = shadow.current;
     if (sh) {
       sh.position.set(g.position.x, wide ? baseY - 0.01 : g.position.y - 0.02, g.position.z);
@@ -186,7 +196,7 @@ function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>;
   });
 
   return (
-    <group ref={group} position={[1.9, -1.65, 0]} scale={0.92}>
+    <group ref={group} position={[1.9, -1.65, 0]} scale={0.92} visible={!!label}>
       <mesh geometry={body}>
         {label ? (
           <meshPhysicalMaterial key="print" map={label} roughness={0.32} clearcoat={0.8} clearcoatRoughness={0.2} envMapIntensity={1.4} sheen={0.25} sheenColor="#ffffff" />
@@ -295,14 +305,13 @@ function Rig() {
 export function Scene({ spin, focus, onReady, active = true }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; onReady?: () => void; active?: boolean }) {
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frameloop = !active ? "never" : reduced ? "demand" : "always";
-  const mobile = typeof window !== "undefined" && window.innerWidth < 900;
   const shadow = useRef<THREE.Group>(null);
   return (
     <Canvas
       className="nab-scene"
-      dpr={[1, mobile ? 1.25 : 1.5]}
+      dpr={[1, 1.25]}
       frameloop={frameloop}
-      onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; onReady?.(); }}
+      onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; }}
       camera={{ position: [0, 0.4, 9.2], fov: 30 }}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
@@ -319,13 +328,14 @@ export function Scene({ spin, focus, onReady, active = true }: { spin: React.Mut
         <Lightformer intensity={1.5} position={[5, 0, 2]} scale={[2, 6, 1]} color="#dff6fa" />
         <Lightformer intensity={2} position={[-2, 2, 3]} scale={[1.6, 6, 1]} />
         <Lightformer intensity={1.5} position={[3, 2, 4]} scale={[1.6, 6, 1]} />
+        <Lightformer intensity={0.6} position={[0, -3, 3]} scale={[6, 1.5, 1]} />
         <Lightformer intensity={1.2} position={[-3, -4, 2]} scale={[4, 2, 1]} color={TEAL} />
       </Environment>
       <Float speed={reduced ? 0 : 1.2} rotationIntensity={0.15} floatIntensity={0.6}>
-        <Bottle spin={spin} focus={focus} shadow={shadow} />
+        <Bottle spin={spin} focus={focus} shadow={shadow} onReady={onReady} />
       </Float>
       <group ref={shadow} position={[1.9, -1.66, 0]}>
-        <ContactShadows opacity={0.35} scale={6} blur={2.4} far={3} />
+        <ContactShadows opacity={0.5} scale={6} blur={1.6} far={3} />
       </group>
       <Rig />
     </Canvas>
