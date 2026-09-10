@@ -17,7 +17,7 @@ import {
 } from "framer-motion";
 import { PROFILE } from "./profile";
 
-if (typeof window !== "undefined") preload("/concepts/noaddedbs/label.jpg", { as: "image" });
+if (typeof window !== "undefined") preload("/concepts/noaddedbs/label.jpg", { as: "image", crossOrigin: "anonymous" });
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 
@@ -79,42 +79,21 @@ function player(id: string, autoplay = false) {
   return `https://www.tiktok.com/player/v1/${id}?${p.toString()}`;
 }
 
-function TikTokFrame({ id, title, autoplay = false, poster }: { id: string; title: string; autoplay?: boolean; poster: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const frame = useRef<HTMLIFrameElement>(null);
-  useEffect(() => {
-    // TikTok's player posts messages once it is ready; any message from it means the poster can go
-    const onMsg = (e: MessageEvent) => {
-      const d = e.data as { "x-tiktok-player"?: boolean } | undefined;
-      if (e.origin === "https://www.tiktok.com" || (d && typeof d === "object" && d["x-tiktok-player"])) setLoaded(true);
-    };
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, []);
-  const play = () => {
-    setLoaded(true);
-    frame.current?.contentWindow?.postMessage({ type: "play", "x-tiktok-player": true }, "https://www.tiktok.com");
-  };
+function TikTokFrame({ id, title, poster }: { id: string; title: string; autoplay?: boolean; poster: string }) {
+  // The player iframe is only created on click. Nothing from TikTok is requested on page load,
+  // so the page never waits on TikTok, and the click starts playback straight away.
+  const [started, setStarted] = useState(false);
   return (
     <div className="nab-tt" style={{ backgroundImage: `url(${poster})` }}>
-      <button
-        type="button"
-        className="nab-poster"
-        hidden={loaded}
-        style={{ backgroundImage: `url(${poster})` }}
-        onClick={play}
-        aria-label={`Play ${title}`}
-      >
-        <span className="play" aria-hidden="true" />
-      </button>
+      {!started && (
+        <button type="button" className="nab-poster" style={{ backgroundImage: `url(${poster})` }} onClick={() => setStarted(true)} aria-label={`Play ${title}`}>
+          <span className="play" aria-hidden="true" />
+        </button>
+      )}
       <a className="nab-tt-out" href={`${TIKTOK}/video/${id}`} target="_blank" rel="noopener">Open on TikTok</a>
-      <iframe
-        ref={frame}
-        src={player(id, autoplay)}
-        title={title}
-        allow={autoplay ? "autoplay; encrypted-media" : "encrypted-media"}
-        loading={autoplay ? "eager" : "lazy"}
-      />
+      {started && (
+        <iframe src={player(id, true)} title={title} allow="autoplay; encrypted-media" />
+      )}
     </div>
   );
 }
@@ -269,7 +248,7 @@ function Timeline() {
   const frames = (
     <>
       <Frame i={0} p={scrollYProgress} caption="Today" note="Filmed by Logan, @theeloganstowers" lead>
-        <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/poster-today.webp" />
+        <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" poster="/concepts/noaddedbs/poster-today.webp" />
       </Frame>
       {VIDEOS.map((v, i) => (
         <Frame key={v.id} i={i + 1} p={scrollYProgress} caption={v.label} note={v.note}>
