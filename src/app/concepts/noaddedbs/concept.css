@@ -158,10 +158,20 @@
 .nab-plan .was { color: var(--ink-soft); text-decoration: line-through; font-weight: 400; font-size: 16px; margin-right: 8px; }
 .nab-plan small { display: block; color: var(--ink-soft); }
 
-/* reviews placeholder */
-.nab-reviews { margin-top: 32px; padding: 32px; border-radius: 20px; border: 2px dashed var(--line); background: #fff; }
-.nab-reviews .stars { display: flex; gap: 6px; }
-.nab-reviews .stars i { width: 22px; height: 22px; border-radius: 4px; background: var(--water); display: block; }
+/* reviews */
+.nab-reviews { margin-top: 28px; display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 720px) { .nab-reviews { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .nab-reviews { grid-template-columns: repeat(3, 1fr); } }
+.nab-review { margin: 0; padding: 22px; border-radius: 20px; background: #fff; border: 1px solid var(--line); display: grid; gap: 12px; align-content: start; }
+.nab-review-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.nab-review .stars { display: inline-flex; gap: 3px; }
+.nab-review .stars i { width: 16px; height: 16px; display: block; background: var(--line); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.nab-review .stars i[data-on="true"] { background: var(--teal); }
+.nab-sample { font-size: 12px; font-weight: 600; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; }
+.nab-review blockquote { margin: 0; font-size: 16px; line-height: 1.5; }
+.nab-review figcaption { display: grid; font-size: 14px; }
+.nab-review figcaption strong { font-weight: 700; }
+.nab-review figcaption span { color: var(--ink-soft); }
 
 /* capture */
 .nab-capture { margin-top: 32px; padding: 32px; border-radius: 24px; background: var(--ink); color: #fff; display: grid; gap: 18px; }

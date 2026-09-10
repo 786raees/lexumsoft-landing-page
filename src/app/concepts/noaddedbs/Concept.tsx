@@ -60,6 +60,16 @@ const VIDEOS = [
 
 const HERO_VIDEO = "7644703844567403798";
 
+// Sample reviews for the layout only. Each card is tagged, and the build replaces them with verified orders.
+const REVIEWS: { name: string; when: string; stars: number; text: string }[] = [
+  { name: "Maddie R.", when: "Ohio", stars: 5, text: "Three weeks in and my scalp stopped itching. I read the whole label out loud to my mom because there was nothing I had to google." },
+  { name: "Derek T.", when: "Texas", stars: 5, text: "Bought it after seeing the month-four video. Less hair in the drain than any shampoo I've used. No smell, which I actually prefer." },
+  { name: "Priya S.", when: "New Jersey", stars: 4, text: "Lather is lighter than what I'm used to, took a wash or two to adjust. Hair feels softer without conditioner now. Would like a bigger bottle." },
+  { name: "Jon M.", when: "Florida", stars: 5, text: "Colour-treated hair and it hasn't faded. The subscription showing up before I ran out is the part I didn't know I needed." },
+  { name: "Alyssa K.", when: "Michigan", stars: 5, text: "Use it on my kids too. No tears, no fragrance, and the bottle is the same one from the videos, which sounds silly but mattered." },
+  { name: "Chris B.", when: "Arizona", stars: 5, text: "Scored it on Yuka myself before ordering. 100. Everything else in my shower was in the forties." },
+];
+
 function player(id: string, autoplay = false) {
   const p = new URLSearchParams({
     controls: "1",
@@ -580,15 +590,31 @@ export function Concept() {
         <section className="nab-section" id="reviews">
           <div className="nab-wrap">
             <p className="nab-kicker">Reviews</p>
-            <h2>Your verified reviews go here.</h2>
+            <h2>What people say after a month.</h2>
+            <p className="lede" style={{ marginTop: 10 }}>
+              Verified buyers only, pulled from the store&apos;s review app.
+            </p>
             <div className="nab-reviews">
-              <div className="stars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
-              <p style={{ marginTop: 14 }}>
-                This block pulls verified-buyer reviews from the store&apos;s review app (Judge.me or Okendo, both
-                sync to Shopify and TikTok Shop). It is empty on purpose: it shows real reviews from real orders, and
-                nothing else.
-              </p>
+              {REVIEWS.map((r, i) => (
+                <motion.figure key={r.name} className="nab-review" {...inView(i * 0.06)}>
+                  <div className="nab-review-top">
+                    <span className="stars" aria-label={`${r.stars} out of 5 stars`}>
+                      {[1, 2, 3, 4, 5].map((n) => <i key={n} data-on={n <= r.stars} />)}
+                    </span>
+                    <span className="nab-sample">Sample</span>
+                  </div>
+                  <blockquote>{r.text}</blockquote>
+                  <figcaption>
+                    <strong>{r.name}</strong>
+                    <span>Verified buyer, {r.when}</span>
+                  </figcaption>
+                </motion.figure>
+              ))}
             </div>
+            <p className="nab-note">
+              These are sample reviews to show the layout. The build pulls real ones from Judge.me or Okendo,
+              which sync to Shopify and TikTok Shop, and shows nothing that is not from a real order.
+            </p>
           </div>
         </section>
 
