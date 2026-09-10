@@ -47,7 +47,10 @@ function bodyGeometry(): THREE.LatheGeometry {
     return (a + r + b) / 3;
   });
   pts.push(new THREE.Vector2(0, 0.02), new THREE.Vector2(sm[0] * 0.9, 0.0));
-  PROFILE.forEach(([, y], i) => pts.push(new THREE.Vector2(sm[i], y)));
+  const cut = PROFILE.length - 9; // the last points are the shoulder: smooth them into a round-over
+  PROFILE.slice(0, cut).forEach(([, y], i) => pts.push(new THREE.Vector2(sm[i], y)));
+  const shoulder = new THREE.SplineCurve(PROFILE.slice(cut).map(([, y], j) => new THREE.Vector2(sm[cut + j], y)));
+  shoulder.getPoints(28).forEach((v) => pts.push(v));
   pts.push(new THREE.Vector2(0.27, 3.0), new THREE.Vector2(0.27, 3.02), new THREE.Vector2(0, 3.02));
   const g = new THREE.LatheGeometry(pts, 128);
   // linear V along height so the unwrapped photo lands where it was on the bottle
@@ -58,48 +61,76 @@ function bodyGeometry(): THREE.LatheGeometry {
   return g;
 }
 
-const PLASTIC = { color: "#f6f8f8", roughness: 0.3, clearcoat: 0.9, clearcoatRoughness: 0.2 } as const;
+const PLASTIC = { color: "#f7f9f9", roughness: 0.42, clearcoat: 0.3, clearcoatRoughness: 0.3 } as const;
 
-// Pump head traced from the same photo: a flat duckbill spout that runs to the left,
-// highest over the left-middle, sloping down to a rounded heel on the right.
+// Pump traced from the same photo. Heights are photo rows converted at the body scale:
+// collar 3.00-3.42, lock ring 3.42-3.50, stem 3.50-3.70, head 3.70-3.81, spout tip to x=-0.45.
 function headGeometry(): THREE.ExtrudeGeometry {
   const sh = new THREE.Shape();
-  const pts: [number, number][] = [
-    [-0.441, 3.712], [-0.446, 3.745], [-0.43, 3.768], [-0.405, 3.787], [-0.2, 3.8], [-0.03, 3.797],
-    [0.12, 3.776], [0.19, 3.755], [0.213, 3.735], [0.2, 3.708], [0.16, 3.695], [-0.15, 3.695], [-0.2, 3.706],
-  ];
-  sh.moveTo(pts[0][0], pts[0][1]);
-  pts.slice(1).forEach(([x, y]) => sh.lineTo(x, y));
+  // rounded block over the stem, spout running left and drooping at the tip
+  sh.moveTo(-0.16, 3.7);
+  sh.lineTo(0.14, 3.7);
+  sh.quadraticCurveTo(0.225, 3.7, 0.225, 3.76);
+  sh.quadraticCurveTo(0.225, 3.815, 0.14, 3.815);
+  sh.lineTo(-0.05, 3.815);
+  sh.quadraticCurveTo(-0.3, 3.815, -0.42, 3.79);
+  sh.quadraticCurveTo(-0.46, 3.775, -0.45, 3.74);
+  sh.quadraticCurveTo(-0.44, 3.705, -0.4, 3.71);
+  sh.lineTo(-0.24, 3.74);
+  sh.quadraticCurveTo(-0.19, 3.74, -0.16, 3.7);
   sh.closePath();
-  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 6, curveSegments: 12 });
-  g.translate(0, 0, -0.1);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.19, bevelEnabled: true, bevelSize: 0.07, bevelThickness: 0.07, bevelSegments: 8, curveSegments: 16 });
+  g.translate(0, 0, -0.095);
   return g;
+}
+
+// fine vertical ribs on the closure collar, drawn once as a bump map
+function ribTexture(): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 8;
+  const g = c.getContext("2d")!;
+  for (let x = 0; x < 512; x++) {
+    const v = 0.5 + 0.5 * Math.sin((x / 512) * Math.PI * 2 * 96);
+    g.fillStyle = `rgb(${Math.round(v * 255)},${Math.round(v * 255)},${Math.round(v * 255)})`;
+    g.fillRect(x, 0, 1, 8);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
 }
 
 function Pump() {
   const head = useMemo(() => headGeometry(), []);
+  const ribs = useMemo(() => ribTexture(), []);
   return (
     <group>
-      {/* closure collar with fine vertical ribs: flat-shaded facets read as the ribs */}
-      <mesh position={[0, 3.2, 0]}>
-        <cylinderGeometry args={[0.25, 0.266, 0.41, 44, 1]} />
-        <meshPhysicalMaterial {...PLASTIC} flatShading roughness={0.5} />
+      <mesh position={[0, 3.215, 0]}>
+        <cylinderGeometry args={[0.252, 0.268, 0.41, 96, 1]} />
+        <meshPhysicalMaterial {...PLASTIC} roughness={0.42} bumpMap={ribs} bumpScale={0.012} />
       </mesh>
-      <mesh position={[0, 3.0, 0]}>
-        <cylinderGeometry args={[0.272, 0.272, 0.028, 64]} />
+      <mesh position={[0, 3.005, 0]}>
+        <cylinderGeometry args={[0.274, 0.274, 0.03, 64]} />
         <meshPhysicalMaterial {...PLASTIC} />
       </mesh>
-      {/* lock ring, then the stem */}
-      <mesh position={[0, 3.44, 0]}>
-        <cylinderGeometry args={[0.178, 0.19, 0.08, 48]} />
+      <mesh position={[0, 3.425, 0]}>
+        <cylinderGeometry args={[0.2, 0.245, 0.02, 64]} />
         <meshPhysicalMaterial {...PLASTIC} />
       </mesh>
-      <mesh position={[0, 3.59, 0]}>
-        <cylinderGeometry args={[0.158, 0.158, 0.22, 48]} />
+      <mesh position={[0, 3.46, 0]}>
+        <cylinderGeometry args={[0.175, 0.19, 0.07, 48]} />
+        <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+      <mesh position={[0, 3.6, 0]}>
+        <cylinderGeometry args={[0.158, 0.158, 0.21, 48]} />
         <meshPhysicalMaterial {...PLASTIC} />
       </mesh>
       <mesh geometry={head}>
         <meshPhysicalMaterial {...PLASTIC} />
+      </mesh>
+      {/* the outlet slot at the spout tip */}
+      <mesh position={[-0.44, 3.722, 0]} rotation={[0, 0, 0.3]}>
+        <boxGeometry args={[0.03, 0.02, 0.09]} />
+        <meshStandardMaterial color="#5a6b70" roughness={0.9} />
       </mesh>
     </group>
   );
@@ -117,23 +148,30 @@ function Bottle({ spin, focus }: { spin: React.MutableRefObject<number>; focus: 
     const g = group.current;
     if (!g) return;
     // a full turn over the stage; a chip tap yaws the bottle a little per ingredient and pulses it
-    const f = focus.current > 0 ? (focus.current - 5) * 0.22 : 0;
+    const f = focus.current > 0 ? (focus.current - 5) * 0.07 : 0;
     // the full turn completes by 85% of the stage, so the front panel is already facing
     // the reader while the label card is on screen
     const want = smooth(Math.min(1, spin.current / 0.85)) * Math.PI * 2 + f;
     targetY.current += (want - targetY.current) * Math.min(1, dt * 4);
     g.rotation.y = targetY.current + Math.sin(state.clock.elapsedTime * 0.4) * 0.05;
+    const since = state.clock.elapsedTime - pulseAt.current;
+    g.rotation.z = since < 1 ? 0.04 * Math.sin(since * Math.PI) : 0;
     const wide = state.viewport.width > 7;
     // the glide finishes in the first 60% of the stage so the card never bisects the bottle
     const t = smooth(Math.min(1, spin.current / 0.6));
     // desktop: bottle glides from the right of the hero to the left of the label card.
     // phone: bottle parks in the top third while the label card slides under it.
+    // in the last 10% of the stage the bottle lifts out instead of being sliced by the canvas edge
+    const out = smooth(Math.max(0, (spin.current - 0.93) / 0.07));
     const x = wide ? 1.9 - t * 4.2 : 0;
-    const y = wide ? -1.65 : 0.72 + t * 0.12;
-    const pulse = 1 + Math.max(0, 1 - (state.clock.elapsedTime - pulseAt.current) * 3) * 0.04;
-    const sc = (wide ? 0.92 : 0.47 - t * 0.04) * pulse;
+    const y = (wide ? -1.65 : 0.72 + t * 0.55) + out * 1.2;
+    // recede behind the hero copy mid-glide, then come back
+    const z = -1.6 * Math.sin(t * Math.PI);
+    const pulse = 1 + Math.max(0, 1 - since * 3) * 0.04;
+    const sc = (wide ? 0.92 - out * 0.12 : 0.47 - t * 0.1) * pulse;
     g.position.x += (x - g.position.x) * Math.min(1, dt * 3);
     g.position.y += (y - g.position.y) * Math.min(1, dt * 3);
+    g.position.z += (z - g.position.z) * Math.min(1, dt * 3);
     g.scale.setScalar(g.scale.x + (sc - g.scale.x) * Math.min(1, dt * 3));
     if (focus.current !== lastFocus.current) { lastFocus.current = focus.current; pulseAt.current = state.clock.elapsedTime; }
   });
@@ -142,12 +180,13 @@ function Bottle({ spin, focus }: { spin: React.MutableRefObject<number>; focus: 
     <group ref={group} position={[1.9, -1.65, 0]} scale={0.92}>
       <mesh geometry={body}>
         {label ? (
-          <meshPhysicalMaterial key="print" map={label} roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} envMapIntensity={1.1} />
+          <meshPhysicalMaterial key="print" map={label} roughness={0.22} clearcoat={0.8} clearcoatRoughness={0.1} envMapIntensity={1.4} sheen={0.25} sheenColor="#ffffff" />
         ) : (
           <meshPhysicalMaterial key="blank" color="#f6f8f8" roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} />
         )}
       </mesh>
       <Pump />
+      <Bubbles focus={focus} />
     </group>
   );
 }
@@ -184,38 +223,50 @@ function Liquid() {
   );
 }
 
-function Bubbles({ count = 26 }: { count?: number }) {
+function Bubbles({ focus }: { focus: React.MutableRefObject<number> }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
+  const { viewport } = useThree();
+  const count = viewport.width > 7 ? 26 : 14;
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  const lastFocus = useRef(0);
   const seeds = useMemo(
     () =>
-      Array.from({ length: count }, () => ({
+      Array.from({ length: 26 }, () => ({
         a: Math.random() * Math.PI * 2,
-        r: 1.3 + Math.random() * 1.6,
-        y: Math.random() * 4 - 2,
-        s: 0.04 + Math.random() * 0.1,
+        r: 0.8 + Math.random() * 0.7,
+        y: Math.random() * 3.8,
+        s: 0.03 + Math.random() * 0.08,
         v: 0.08 + Math.random() * 0.14,
         w: Math.random() * Math.PI * 2,
       })),
-    [count]
+    []
   );
   useFrame((state, dt) => {
     const m = mesh.current;
     if (!m) return;
     const t = state.clock.elapsedTime;
-    seeds.forEach((b, i) => {
+    if (focus.current !== lastFocus.current) {
+      // a small burst of bubbles from the spout when an ingredient is tapped
+      lastFocus.current = focus.current;
+      for (let i = 0; i < 6; i++) {
+        const b = seeds[(i * 4) % count];
+        b.y = 3.7; b.r = 0.2 + Math.random() * 0.2; b.a = Math.PI + (Math.random() - 0.5); b.s = 0.03 + Math.random() * 0.05;
+      }
+    }
+    for (let i = 0; i < count; i++) {
+      const b = seeds[i];
       b.y += b.v * dt;
-      if (b.y > 2.4) b.y = -2.2;
+      if (b.y > 4.2) { b.y = -0.2; b.r = 0.8 + Math.random() * 0.7; }
       const a = b.a + t * 0.12;
-      dummy.position.set(Math.cos(a) * b.r, b.y + Math.sin(t + b.w) * 0.08, Math.sin(a) * b.r);
+      dummy.position.set(Math.cos(a) * b.r, b.y + Math.sin(t + b.w) * 0.06, Math.sin(a) * b.r);
       dummy.scale.setScalar(b.s);
       dummy.updateMatrix();
       m.setMatrixAt(i, dummy.matrix);
-    });
+    }
     m.instanceMatrix.needsUpdate = true;
   });
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
+    <instancedMesh key={count} ref={mesh} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 20, 20]} />
       <meshPhysicalMaterial color="#d8f1f5" transparent opacity={0.38} roughness={0.08} metalness={0.1} clearcoat={1} iridescence={0.6} envMapIntensity={1.2} />
     </instancedMesh>
@@ -232,15 +283,15 @@ function Rig() {
   return null;
 }
 
-export function Scene({ spin, focus, onReady }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; onReady?: () => void }) {
+export function Scene({ spin, focus, onReady, active = true }: { spin: React.MutableRefObject<number>; focus: React.MutableRefObject<number>; onReady?: () => void; active?: boolean }) {
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const frameloop = reduced ? "demand" : "always";
+  const frameloop = !active ? "never" : reduced ? "demand" : "always";
   return (
     <Canvas
       className="nab-scene"
       dpr={[1, 1.5]}
       frameloop={frameloop}
-      onCreated={() => onReady?.()}
+      onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; onReady?.(); }}
       camera={{ position: [0, 0.4, 9.2], fov: 30 }}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
@@ -250,6 +301,7 @@ export function Scene({ spin, focus, onReady }: { spin: React.MutableRefObject<n
       <ambientLight intensity={0.5} />
       <directionalLight position={[3, 5, 4]} intensity={2.2} />
       <directionalLight position={[-4, 2, -2]} intensity={0.8} color={TEAL} />
+      <directionalLight position={[-3, 3, -5]} intensity={1.6} />
       <Environment resolution={256}>
         <Lightformer intensity={3} position={[0, 4, -4]} scale={[8, 3, 1]} />
         <Lightformer intensity={2} position={[-5, 1, 2]} scale={[2, 6, 1]} color="#ffffff" />
@@ -260,7 +312,6 @@ export function Scene({ spin, focus, onReady }: { spin: React.MutableRefObject<n
       <Float speed={reduced ? 0 : 1.2} rotationIntensity={0.15} floatIntensity={0.6}>
         <Bottle spin={spin} focus={focus} />
       </Float>
-      <Bubbles />
       <ContactShadows position={[0, -1.66, 0]} opacity={0.35} scale={8} blur={2.4} far={3} />
       <Rig />
     </Canvas>

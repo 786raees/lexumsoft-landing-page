@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { preload } from "react-dom";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+
+if (typeof window !== "undefined") preload("/concepts/noaddedbs/label.jpg", { as: "image" });
 
 const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 
@@ -91,6 +94,7 @@ export function Concept() {
   const [active, setActive] = useState(4); // L-Arginine first: the growth story
   const [monthly, setMonthly] = useState(true);
   const [ready, setReady] = useState(false);
+  const [stageOn, setStageOn] = useState(true);
   const ing = INGREDIENTS[active];
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
@@ -98,6 +102,15 @@ export function Concept() {
   const focus = useRef(0);
   const { scrollYProgress: stageP } = useScroll({ target: stageRef, offset: ["start start", "end end"] });
   useMotionValueEvent(stageP, "change", (v) => { spin.current = v; });
+  const heroFade = useTransform(stageP, [0, 0.2], [1, 0]);
+  useEffect(() => {
+    // stop rendering the canvas once the reader is past the 3D stage
+    const el = stageRef.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setStageOn(e.isIntersecting), { rootMargin: "20% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const proofRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: proofRef, offset: ["start end", "center center"] });
   const bigScale = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [0.6, 1]);
@@ -126,13 +139,13 @@ export function Concept() {
         <div className="nab-3d" ref={stageRef}>
           <div className="nab-3d-canvas">
             <div className={`nab-boot${ready ? " off" : ""}`} aria-hidden="true">
-              <img src="/concepts/noaddedbs/bottle-cut.png" alt="" />
+              <img src="/concepts/noaddedbs/bottle-cut.webp" alt="" width={264} height={900} />
             </div>
-            <Scene spin={spin} focus={focus} onReady={() => setReady(true)} />
+            <Scene spin={spin} focus={focus} active={stageOn} onReady={() => setReady(true)} />
           </div>
           <div className="nab-3d-content">
             <section className="nab-wrap nab-hero">
-              <div className="nab-hero-copy">
+              <motion.div className="nab-hero-copy" style={{ opacity: reduced ? 1 : heroFade }}>
                 <motion.h1 {...rise(0)}>Nothing to hide.</motion.h1>
                 <motion.p className="lede" {...rise(0.12)}>
                   One shampoo. Nine ingredients you can read out loud. A 100 out of 100 on Yuka.
@@ -149,7 +162,7 @@ export function Concept() {
                   </motion.a>
                 </motion.div>
                 <motion.p className="nab-note" {...rise(0.4)}>Scroll to turn the bottle and read the label.</motion.p>
-              </div>
+              </motion.div>
             </section>
 
             <section className="nab-wrap nab-labelsec" id="label">
