@@ -8,6 +8,7 @@ import {
   animate,
   motion,
   useInView,
+  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -50,9 +51,9 @@ const INGREDIENTS: { name: string; role: string; does: string; replaces: string 
 ];
 
 const VIDEOS = [
-  { id: "7659441194983804182", label: "Month one", note: "Where it started", poster: "/concepts/noaddedbs/lifestyle-2.jpg" },
-  { id: "7649111397493656854", label: "Month four", note: "First visible change", poster: "/concepts/noaddedbs/bottle.png" },
-  { id: "7662816376440098070", label: "Month ten", note: "The result people ask about", poster: "/concepts/noaddedbs/duo.png" },
+  { id: "7659441194983804182", label: "Month one", note: "Where it started", poster: "/concepts/noaddedbs/poster-m1.webp" },
+  { id: "7649111397493656854", label: "Month four", note: "First visible change", poster: "/concepts/noaddedbs/poster-m4.webp" },
+  { id: "7662816376440098070", label: "Month ten", note: "The result people ask about", poster: "/concepts/noaddedbs/poster-m10.webp" },
 ];
 
 const HERO_VIDEO = "7644703844567403798";
@@ -142,14 +143,23 @@ function answerFor(q: string): { text: string; pick?: number } {
 
 function Typewriter({ text }: { text: string }) {
   const reduced = useReducedMotion();
-  const [n, setN] = useState(reduced ? text.length : 0);
+  const node = useRef<HTMLSpanElement>(null);
+  const caret = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    if (reduced) { setN(text.length); return; }
-    setN(0);
-    const id = window.setInterval(() => setN((v) => { if (v >= text.length) { window.clearInterval(id); return v; } return v + 1; }), 18);
-    return () => window.clearInterval(id);
+    const el = node.current, ck = caret.current;
+    if (!el) return;
+    if (reduced) { el.textContent = text; if (ck) ck.hidden = true; return; }
+    el.textContent = "";
+    if (ck) ck.hidden = false;
+    const c = animate(0, text.length, {
+      duration: text.length * 0.018,
+      ease: "linear",
+      onUpdate: (v) => { el.textContent = text.slice(0, Math.round(v)); },
+      onComplete: () => { if (ck) ck.hidden = true; },
+    });
+    return () => c.stop();
   }, [text, reduced]);
-  return <p>{text.slice(0, n)}<span className="nab-caret" aria-hidden="true" hidden={n >= text.length} /></p>;
+  return <p><span ref={node} /><span ref={caret} className="nab-caret" aria-hidden="true" /></p>;
 }
 
 const SUGGEST = ["Is it safe for coloured hair?", "Which one helps growth?", "Does it have sulfates?"];
@@ -175,9 +185,9 @@ function Ask({ onPick }: { onPick: (i: number) => void }) {
           <button key={s} type="button" onClick={() => { setQ(s); submit(s); }}>{s}</button>
         ))}
       </div>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {a && (
-          <motion.div key={a.q} className="nab-answer" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} aria-live="polite">
+          <motion.div key={a.q} className="nab-answer" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: 0.15 } }} transition={{ duration: 0.25 }} aria-live="polite">
             <Typewriter text={a.text} />
           </motion.div>
         )}
@@ -190,13 +200,13 @@ function Ask({ onPick }: { onPick: (i: number) => void }) {
 /* ---------- Mobile: ingredient names rise from the spout during the stage ---------- */
 
 function RainWord({ p, i, name }: { p: MotionValue<number>; i: number; name: string }) {
-  // two columns either side of the bottle, five rows, each word rising into its slot
+  // two columns either side of the bottle, five rows; each word rises 28px into its own slot
   const start = 0.16 + i * 0.03;
+  const slot = -30 - Math.floor(i / 2) * 44;
   const opacity = useTransform(p, [start, start + 0.05, 0.56, 0.64], [0, 1, 1, 0]);
-  const y = useTransform(p, [start, start + 0.18], [40, -30 - Math.floor(i / 2) * 44]);
-  const x = (i % 2 ? 1 : -1) * 108;
+  const y = useTransform(p, [start, start + 0.16], [slot + 28, slot]);
   return (
-    <motion.span className="nab-rainword" style={{ opacity, y, x }}>
+    <motion.span className={`nab-rainword ${i % 2 ? "r" : "l"}`} style={{ opacity, y }}>
       {name}
     </motion.span>
   );
@@ -237,11 +247,16 @@ function Timeline() {
     return () => window.removeEventListener("resize", measure);
   }, []);
   const x = useTransform(scrollYProgress, [0.05, 0.95], [0, -dist]);
-  const rail = useTransform(scrollYProgress, [0.05, 0.95], [0, 1]);
+  const railScrub = useTransform(scrollYProgress, [0.05, 0.95], [0, 1]);
+  const railStrip = useMotionValue(0);
+  const onStrip = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    railStrip.set(Math.max(0, Math.min(1, el.scrollLeft / Math.max(1, el.scrollWidth - el.clientWidth))));
+  };
   const frames = (
     <>
       <Frame i={0} p={scrollYProgress} caption="Today" note="Filmed by Logan, @theeloganstowers" lead>
-        <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/lifestyle-1.jpg" />
+        <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/poster-today.webp" />
       </Frame>
       {VIDEOS.map((v, i) => (
         <Frame key={v.id} i={i + 1} p={scrollYProgress} caption={v.label} note={v.note}>
@@ -261,12 +276,12 @@ function Timeline() {
           </p>
           <div className="nab-rail" aria-hidden="true">
             <span>Today</span>
-            <i><motion.b style={{ scaleX: rail }} /></i>
+            <i><motion.b style={{ scaleX: wide ? railScrub : railStrip }} /></i>
             <span>Month ten</span>
           </div>
         </div>
         <div className="nab-wrap nab-trackwrap" ref={trackRef}>
-          <motion.div className="nab-videos nab-videos-4" style={wide ? { x } : undefined}>{frames}</motion.div>
+          <motion.div className="nab-videos nab-videos-4" style={wide ? { x } : undefined} onScroll={wide ? undefined : onStrip}>{frames}</motion.div>
         </div>
         <div className="nab-wrap">
           <p className="nab-note">Videos play from Logan&apos;s public TikTok. Captions are placeholders until he picks the three clips.</p>

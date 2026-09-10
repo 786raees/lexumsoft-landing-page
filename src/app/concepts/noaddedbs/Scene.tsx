@@ -162,19 +162,22 @@ function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>;
     // desktop: bottle glides from the right of the hero to the left of the label card.
     // phone: bottle parks in the top third while the label card slides under it.
     // in the last 10% of the stage the bottle lifts out instead of being sliced by the canvas edge
-    const out = smooth(Math.max(0, (spin.current - 0.93) / 0.07));
+    const outStart = wide ? 0.93 : 0.78;
+    const out = smooth(Math.max(0, (spin.current - outStart) / (1 - outStart)));
     const x = wide ? 1.9 - t * 4.2 : 0;
-    const y = (wide ? -1.65 : 0.5 + t * 0.1) + out * 1.2;
+    // desktop: the base clears the fold by ~6% of the view whatever the window height
+    const baseY = -state.viewport.height * 0.42 + 0.3;
+    const y = (wide ? baseY : 0.5 + t * 0.1) + out * 1.2;
     // recede behind the hero copy mid-glide, then come back
     const z = -1.6 * Math.sin(t * Math.PI);
     const pulse = 1 + Math.max(0, 1 - since * 3) * 0.04;
-    const sc = (wide ? 0.92 - out * 0.12 : 0.44 - t * 0.02) * pulse;
+    const sc = (wide ? 0.92 - out * 0.12 : (0.44 - t * 0.02) * (1 - out * 0.7)) * pulse;
     g.position.x += (x - g.position.x) * Math.min(1, dt * 3);
     g.position.y += (y - g.position.y) * Math.min(1, dt * 3);
     g.position.z += (z - g.position.z) * Math.min(1, dt * 3);
     const sh = shadow.current;
     if (sh) {
-      sh.position.set(g.position.x, wide ? -1.66 : g.position.y - 0.02, g.position.z);
+      sh.position.set(g.position.x, wide ? baseY - 0.01 : g.position.y - 0.02, g.position.z);
       const k = (1 - out) * (1 - Math.min(1, Math.abs(g.position.z) / 1.6)) * (g.scale.x / 0.92);
       sh.scale.setScalar(Math.max(0.001, k));
     }
@@ -186,7 +189,7 @@ function Bottle({ spin, focus, shadow }: { spin: React.MutableRefObject<number>;
     <group ref={group} position={[1.9, -1.65, 0]} scale={0.92}>
       <mesh geometry={body}>
         {label ? (
-          <meshPhysicalMaterial key="print" map={label} roughness={0.22} clearcoat={0.8} clearcoatRoughness={0.1} envMapIntensity={1.4} sheen={0.25} sheenColor="#ffffff" />
+          <meshPhysicalMaterial key="print" map={label} roughness={0.32} clearcoat={0.8} clearcoatRoughness={0.2} envMapIntensity={1.4} sheen={0.25} sheenColor="#ffffff" />
         ) : (
           <meshPhysicalMaterial key="blank" color="#f6f8f8" roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} />
         )}
@@ -314,8 +317,8 @@ export function Scene({ spin, focus, onReady, active = true }: { spin: React.Mut
         <Lightformer intensity={3} position={[0, 4, -4]} scale={[8, 3, 1]} />
         <Lightformer intensity={2} position={[-5, 1, 2]} scale={[2, 6, 1]} color="#ffffff" />
         <Lightformer intensity={1.5} position={[5, 0, 2]} scale={[2, 6, 1]} color="#dff6fa" />
-        <Lightformer intensity={4} position={[-2, 2, 3]} scale={[0.4, 6, 1]} />
-        <Lightformer intensity={3} position={[3, 2, 4]} scale={[0.3, 6, 1]} />
+        <Lightformer intensity={2} position={[-2, 2, 3]} scale={[1.6, 6, 1]} />
+        <Lightformer intensity={1.5} position={[3, 2, 4]} scale={[1.6, 6, 1]} />
         <Lightformer intensity={1.2} position={[-3, -4, 2]} scale={[4, 2, 1]} color={TEAL} />
       </Environment>
       <Float speed={reduced ? 0 : 1.2} rotationIntensity={0.15} floatIntensity={0.6}>
