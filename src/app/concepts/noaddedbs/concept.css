@@ -139,3 +139,25 @@
 .nab-poster .hint { position: relative; font-size: 15px; }
 .nab-poster[hidden] { display: none; }
 .nab-phone .nab-tt { border-radius: 26px; }
+
+/* 3D stage: sticky canvas behind hero + label */
+.nab-3d { position: relative; }
+.nab-3d-canvas { position: sticky; top: 0; height: 100vh; z-index: 0; }
+.nab-3d-content { position: relative; z-index: 1; margin-top: -100vh; }
+.nab-scene { z-index: 0; }
+.nab-hero { min-height: 100vh; align-content: center; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .nab-hero { grid-template-columns: 0.9fr 1.1fr; } }
+.nab-labelsec { min-height: 100vh; display: grid; align-items: center; padding: 48px 0; }
+@media (min-width: 900px) { .nab-labelsec { grid-template-columns: 1fr 1fr; } .nab-labelsec .nab-labelcard { grid-column: 2; } }
+.nab-labelcard { background: rgba(247, 251, 252, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: 24px; padding: 28px; }
+.nab-videos-4 { grid-template-columns: 1fr; }
+@media (min-width: 720px) { .nab-videos-4 { grid-template-columns: repeat(4, 1fr); } }
+.nab-videos .nab-phone { width: 100%; justify-self: stretch; aspect-ratio: 9 / 16; padding: 8px; border-radius: 28px; box-shadow: none; }
+.nab-videos .nab-phone .nab-tt { border-radius: 22px; }
+
+@media (max-width: 899px) {
+  .nab-hero { min-height: 100vh; align-content: end; padding-bottom: 56px; }
+  .nab-hero-copy { padding-top: 46vh; }
+  .nab-labelcard { background: rgba(247, 251, 252, 0.94); }
+  .nab-videos-4 { grid-template-columns: 1fr 1fr; }
+}

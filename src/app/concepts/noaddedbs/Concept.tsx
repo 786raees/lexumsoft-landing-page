@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 
-const Bubbles = dynamic(() => import("./Bubbles").then((m) => m.Bubbles), { ssr: false });
+const Scene = dynamic(() => import("./Scene").then((m) => m.Scene), { ssr: false });
 
 const ease = [0.2, 0.7, 0.2, 1] as const;
 const rise = (delay = 0) => ({
@@ -88,6 +88,11 @@ export function Concept() {
   const [monthly, setMonthly] = useState(true);
   const ing = INGREDIENTS[active];
   const reduced = useReducedMotion();
+  const stageRef = useRef<HTMLDivElement>(null);
+  const spin = useRef(0);
+  const focus = useRef(0);
+  const { scrollYProgress: stageP } = useScroll({ target: stageRef, offset: ["start start", "end end"] });
+  useMotionValueEvent(stageP, "change", (v) => { spin.current = v; });
   const proofRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: proofRef, offset: ["start end", "center center"] });
   const bigScale = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [0.6, 1]);
@@ -113,42 +118,36 @@ export function Concept() {
       </header>
 
       <main id="top">
-        <section className="nab-hero-stage">
-          <Bubbles />
-          <div className="nab-wrap nab-hero">
-          <div className="nab-hero-copy">
-            <motion.h1 {...rise(0)}>Nothing to hide.</motion.h1>
-            <motion.p className="lede" {...rise(0.12)}>
-              One shampoo. Nine ingredients you can read out loud. A 100 out of 100 on Yuka.
-            </motion.p>
-            <motion.div className="nab-stamp" title="Score on the Yuka app" {...rise(0.2)}>
-              <strong>100/100</strong> Yuka rating, Excellent
-            </motion.div>
-            <motion.div className="nab-actions" {...rise(0.28)}>
-              <motion.a className="nab-btn primary" href={SHOP_URL} whileTap={{ scale: 0.98 }}>
-                Shop the 2-pack
-              </motion.a>
-              <motion.a className="nab-btn ghost" href="#timeline" whileTap={{ scale: 0.98 }}>
-                Watch the growth timeline
-              </motion.a>
-            </motion.div>
-          </div>
-          <motion.div className="nab-phone" initial={{ opacity: 0, y: 30, rotate: -2 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ duration: 0.9, ease, delay: 0.3 }}>
-            <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/lifestyle-1.jpg" />
-            <span className="caption">Filmed by Logan, @theeloganstowers</span>
-          </motion.div>
-          </div>
-        </section>
+        <div className="nab-3d" ref={stageRef}>
+          <div className="nab-3d-canvas"><Scene spin={spin} focus={focus} /></div>
+          <div className="nab-3d-content">
+            <section className="nab-wrap nab-hero">
+              <div className="nab-hero-copy">
+                <motion.h1 {...rise(0)}>Nothing to hide.</motion.h1>
+                <motion.p className="lede" {...rise(0.12)}>
+                  One shampoo. Nine ingredients you can read out loud. A 100 out of 100 on Yuka.
+                </motion.p>
+                <motion.div className="nab-stamp" title="Score on the Yuka app" {...rise(0.2)}>
+                  <strong>100/100</strong> Yuka rating, Excellent
+                </motion.div>
+                <motion.div className="nab-actions" {...rise(0.28)}>
+                  <motion.a className="nab-btn primary" href={SHOP_URL} whileTap={{ scale: 0.98 }}>
+                    Shop the 2-pack
+                  </motion.a>
+                  <motion.a className="nab-btn ghost" href="#label" whileTap={{ scale: 0.98 }}>
+                    Turn the bottle
+                  </motion.a>
+                </motion.div>
+                <motion.p className="nab-note" {...rise(0.4)}>Scroll to turn the bottle and read the label.</motion.p>
+              </div>
+            </section>
 
-        <section className="nab-section" id="label">
-          <div className="nab-wrap">
-            <h2>Read the label. Tap anything.</h2>
-            <p className="lede" style={{ marginTop: 14 }}>
-              Every ingredient, what it does, and what it replaces.
-            </p>
-            <div className="nab-label">
-              <img src="/concepts/noaddedbs/bottle.png" alt="No Added BS all-natural shampoo bottle" width={1024} height={1024} />
-              <div>
+            <section className="nab-wrap nab-labelsec" id="label">
+              <div className="nab-labelcard">
+                <h2>Read the label. Tap anything.</h2>
+                <p className="lede" style={{ marginTop: 10 }}>
+                  Every ingredient, what it does, and what it replaces.
+                </p>
                 <div className="nab-chips" role="group" aria-label="Ingredients">
                   {INGREDIENTS.map((it, i) => (
                     <button
@@ -156,7 +155,7 @@ export function Concept() {
                       type="button"
                       className="nab-chip"
                       aria-pressed={i === active}
-                      onClick={() => setActive(i)}
+                      onClick={() => { setActive(i); focus.current = i + 1; }}
                     >
                       {it.name}
                     </button>
@@ -191,9 +190,9 @@ export function Concept() {
                   Concept only. In the build, this answers from the ingredient list above, not from the internet.
                 </p>
               </div>
-            </div>
+            </section>
           </div>
-        </section>
+        </div>
 
         <section className="nab-section" id="timeline">
           <div className="nab-wrap">
@@ -201,7 +200,16 @@ export function Concept() {
             <p className="lede" style={{ marginTop: 14 }}>
               Logan filmed the whole thing. No stock photo appears on this page.
             </p>
-            <div className="nab-videos">
+            <div className="nab-videos nab-videos-4">
+              <figure className="nab-lead">
+                <div className="frame nab-phone">
+                  <TikTokFrame id={HERO_VIDEO} title="Logan Stowers on TikTok" autoplay poster="/concepts/noaddedbs/lifestyle-1.jpg" />
+                </div>
+                <figcaption>
+                  Today
+                  <span>Filmed by Logan, @theeloganstowers</span>
+                </figcaption>
+              </figure>
               {VIDEOS.map((v) => (
                 <figure key={v.id}>
                   <div className="frame">
